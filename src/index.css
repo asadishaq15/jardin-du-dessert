@@ -1,5 +1,13 @@
 /* ————— FONTS ————— */
 @font-face {
+  font-family: 'Requiem Fine';
+  src: url('/Requiem Fine-HTF- Roman/Requiem Fine-HTF- Roman.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Grand Slang';
   src: url('/GrandSlang-Roman/web/font/GrandSlang-Roman.woff2') format('woff2'),
        url('/GrandSlang-Roman/web/font/GrandSlang-Roman.woff') format('woff'),
@@ -37,16 +45,16 @@ a { color: inherit; text-decoration: none; }
   --copper-deep: #9A5A2E;
   --copper-light: #E6B98A;
   --pad: clamp(24px, 4vw, 56px);
-  --serif: "Grand Slang", "Italiana", "Cormorant Garamond", "Playfair Display", Georgia, serif;
-  --serif-italic: "Cormorant Garamond", "Italiana", Georgia, serif;
-  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --serif: "Requiem Fine", "Grand Slang", "Italiana", "Cormorant Garamond", Georgia, serif;
+  --serif-italic: "Requiem Fine", "Cormorant Garamond", Georgia, serif;
+  --sans: "Requiem Fine", "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   --ease: cubic-bezier(.22,.61,.36,1);
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--sans);
+  font-family: var(--serif);
   font-weight: 300;
   font-size: 14px;
   line-height: 1.6;
@@ -691,17 +699,101 @@ body {
 @keyframes barPulse { 0%,100% { height: 4px; } 50% { height: 12px; } }
 
 /* ————— RESPONSIVE ————— */
+
+/* Tablet */
 @media (max-width: 900px) {
   .realm-block { grid-template-columns: 1fr; gap: 24px; }
   .states-grid { grid-template-columns: repeat(2, 1fr); row-gap: 28px; }
   .modal-meta .row { grid-template-columns: 1fr; gap: 4px; }
-  .frame-top nav { gap: 18px; }
-  .brand .wordmark { display: none; }
+
+  /* Header: shrink logo, tighten nav */
+  .frame-top { padding: 16px var(--pad); }
+  .frame-top nav { gap: 16px; }
+  .brand .logo-wordmark { width: 140px; }
+  .brand .logo-icon { width: 36px; }
+  .brand { gap: 8px; }
+
+  /* Footer: stack vertically */
+  .frame-bottom {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px var(--pad);
+    text-align: center;
+  }
+
+  /* Entry */
+  .screen-entry { gap: 40px; }
+  .screen-entry .entry-center { gap: 32px; }
+
+  /* Desert controls */
+  .desert-return { top: 16px; left: 20px; font-size: 10px; letter-spacing: 0.3em; }
+  .desert-controls .sound-btn { top: 16px; right: 20px; }
 }
+
+/* Mobile */
 @media (max-width: 600px) {
-  .states-grid { grid-template-columns: 1fr; row-gap: 24px; }
+  /* Header: wrap to two rows — logo on top, nav below */
+  .frame-top {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+  .brand {
+    width: 100%;
+    justify-content: center;
+    gap: 6px;
+  }
+  .brand .logo-icon { width: 30px; }
+  .brand .logo-wordmark { width: 120px; }
+  .frame-top nav {
+    width: 100%;
+    justify-content: center;
+    gap: 14px;
+  }
+  .nav-btn { font-size: 9px; letter-spacing: 0.24em; }
+
+  /* Sound button in navbar */
+  .sound-btn {
+    font-size: 9px;
+    letter-spacing: 0.24em;
+    padding-left: 12px;
+    margin-left: 2px;
+  }
+
+  /* Footer: smaller text, tighter padding */
+  .frame-bottom {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 16px;
+    text-align: center;
+  }
+  .frame-bottom .micro { font-size: 8px; letter-spacing: 0.24em; }
+
+  /* Screens: tighter padding for mobile chrome */
+  .screen { padding: 100px 16px 80px; }
+
+  /* Entry */
+  .screen-entry { gap: 32px; }
+  .screen-entry .entry-center { gap: 24px; }
+  .screen-entry h1 { font-size: clamp(28px, 8vw, 48px); }
+  .screen-entry .entry-sub { font-size: 11px; letter-spacing: 0.16em; }
+
+  /* Buttons */
   .btn { padding: 12px 20px; font-size: 11px; letter-spacing: 0.34em; }
   .modal-actions, .form-actions { flex-direction: column; gap: 18px; }
+
+  /* States grid */
+  .states-grid { grid-template-columns: 1fr; row-gap: 24px; }
+
+  /* Desert controls: tighter to edges */
+  .desert-return { top: 12px; left: 14px; font-size: 9px; letter-spacing: 0.24em; gap: 6px; }
+  .desert-controls .sound-btn { top: 12px; right: 14px; }
+
+  /* Desert reveal modal */
+  .desert-reveal-panel { width: 92vw; max-width: 92vw; padding: 2rem 1.5rem; }
 }
 
 /* ————— DESERT LOADING ————— */
@@ -713,7 +805,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 1.2s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition: opacity 1.4s cubic-bezier(0.22, 0.61, 0.36, 1);
   pointer-events: none;
 }
 .desert-loading.is-fading { opacity: 0; }
@@ -722,14 +814,51 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
 }
 
-.loading-symbol {
-  width: 60px;
-  height: auto;
-  opacity: 0.8;
-  animation: pulse 2s ease-in-out infinite;
+/* SVG logo container */
+.desert-loading__logo {
+  width: 100px;
+  height: 160px;
+}
+
+.loading-logo-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Line-drawing animation for each SVG path */
+.logo-path {
+  fill: none;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+}
+
+/* Stem: draws first */
+.logo-path--stem {
+  animation: drawPath 2.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+}
+
+/* Right leaf: draws second */
+.logo-path--right {
+  animation: drawPath 1.8s cubic-bezier(0.4, 0, 0.2, 1) 0.9s forwards;
+}
+
+/* Left leaf: draws third */
+.logo-path--left {
+  animation: drawPath 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1.5s forwards;
+}
+
+/* Inner petal: draws last */
+.logo-path--petal {
+  animation: drawPath 1.4s cubic-bezier(0.4, 0, 0.2, 1) 2.0s forwards;
+}
+
+@keyframes drawPath {
+  0%   { stroke-dashoffset: 600; opacity: 0.3; }
+  10%  { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
 }
 
 .desert-loading__text {
@@ -738,6 +867,12 @@ body {
   letter-spacing: 0.42em;
   text-transform: uppercase;
   color: #888;
+  opacity: 0;
+  animation: fadeInText 0.8s ease 0.6s forwards;
+}
+
+@keyframes fadeInText {
+  to { opacity: 1; }
 }
 
 .desert-loading__bar-container {
@@ -751,7 +886,7 @@ body {
 .desert-loading__bar {
   position: absolute;
   inset: 0;
-  background: #111;
+  background: #B8723A;
   width: 30%;
   transform: translateX(-100%);
   animation: loadingBar 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
@@ -764,14 +899,10 @@ body {
   transition: width 0.6s ease;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.4; transform: scale(0.98); }
-  50% { opacity: 0.8; transform: scale(1); }
-}
-
 @keyframes loadingBar {
   0% { transform: translateX(-100%); width: 10%; }
   50% { transform: translateX(50%); width: 30%; }
   100% { transform: translateX(200%); width: 10%; }
 }
+
 
