@@ -30,6 +30,13 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [screen])
 
+  // Ensure ambient audio stops whenever user leaves desert view.
+  useEffect(() => {
+    if (screen !== 'desert') {
+      setPlaying(false)
+    }
+  }, [screen, setPlaying])
+
   // Escape key closes modals
   useEffect(() => {
     const handleKey = (e) => {
@@ -38,7 +45,6 @@ function App() {
         setAboutOpen(false)
         if (screen === 'desert') {
           useAppStore.getState().setScreen('entry')
-          setPlaying(false)
         }
       }
     }
