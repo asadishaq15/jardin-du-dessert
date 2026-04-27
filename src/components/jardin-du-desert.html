@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jardin du Désert · Private Intellectual Fragrance House</title>
+
+<!--
+  JARDIN DU DÉSERT · final prototype
+  ————————————————————————————————————————————
+  Asset hand-off
+  - LOGO mark: drop ./assets/jdd-logo.png next to this file → it overrides the SVG fallback.
+  - DESERT image: ./assets/desert.jpg (replace the Unsplash URL on .desert-hero).
+  - Wordmark "Jardin du Désert" is rendered as live text in serif so it scales perfectly.
+  - Forbidden CSS: blur · glass · gradient · shadow · heavy animation.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  /* ————— RESET ————— */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  button { background: none; border: 0; font: inherit; color: inherit; cursor: pointer; }
+  input, textarea { background: transparent; border: 0; font: inherit; color: inherit; outline: none; }
+  a { color: inherit; text-decoration: none; }
+
+  /* ————— TOKENS ————— */
+  :root {
+    --bg: #FFFFFF;
+    --ink: #000000;
+    --muted: #6E6E6E;
+    --muted-soft: #9A9A9A;
+    --line: #000000;
+    /* Copper — used ONLY as a signal of choice. Never decoration.
+       Hover  = possibility (--copper)
+       Chosen = decision    (gradient --copper-deep → --copper-light) */
+    --copper: #C57A4A;
+    --copper-deep: #9A5A2E;
+    --copper-light: #E6B98A;
+    --pad: clamp(24px, 4vw, 56px);
+    --serif: "Grand Slang", "Italiana", "Cormorant Garamond", "Playfair Display", Georgia, serif;
+    --serif-italic: "Cormorant Garamond", "Italiana", Georgia, serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --ease: cubic-bezier(.22,.61,.36,1);
+  }
+
+  /* Copper-gradient text — applied to a chosen state name.
+     Falls back to solid copper-deep on browsers without background-clip:text. */
+  .copper-text {
+    color: var(--copper-deep);
+    background: linear-gradient(90deg, var(--copper-deep) 0%, var(--copper) 55%, var(--copper-light) 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 14px;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* ————— TYPOGRAPHY ————— */
+  .micro {
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .app { position: relative; min-height: 100vh; }
+
+  /* Top frame */
+  .frame-top {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px var(--pad);
+    z-index: 50;
+    pointer-events: none;
+  }
+  .frame-top > * { pointer-events: auto; }
+
+  .brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .brand .jdd-mark { width: 36px; height: 30px; flex-shrink: 0; }
+  .brand .wordmark {
+    font-family: var(--serif);
+    font-size: 13px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .frame-top nav { display: flex; align-items: center; gap: 28px; }
+  .nav-btn {
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink);
+    transition: opacity .3s var(--ease);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-btn:hover { opacity: .55; }
+
+  /* Sound control (used inside the Desert overlay) */
+  .sound-bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+  .sound-bars span { display: block; width: 2px; background: currentColor; height: 4px; transition: height .4s var(--ease); }
+  .sound-ctl.is-on .sound-bars span { animation: barPulse 1.1s var(--ease) infinite; }
+  .sound-ctl.is-on .sound-bars span:nth-child(2) { animation-delay: .15s; }
+  .sound-ctl.is-on .sound-bars span:nth-child(3) { animation-delay: .3s; }
+  .sound-ctl.is-on .sound-bars span:nth-child(4) { animation-delay: .45s; }
+  .sound-ctl.is-off .sound-bars span { height: 4px; opacity: .35; }
+  @keyframes barPulse { 0%,100% { height: 4px; } 50% { height: 12px; } }
+
+  .frame-bottom {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px var(--pad);
+    z-index: 50;
+    pointer-events: none;
+  }
+  .frame-bottom > * { pointer-events: auto; }
+  .frame-bottom .micro { opacity: .7; }
+
+  /* ————— SCREENS ————— */
+  .screen {
+    display: none;
+    min-height: 100vh;
+    padding: 112px var(--pad) 96px;
+    animation: fadeIn .6s var(--ease);
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* 1. ENTRY */
+  .screen-entry { flex-direction: column; align-items: center; justify-content: space-between; text-align: center; }
+  .entry-logo { display: flex; flex-direction: column; align-items: center; }
+  .screen-entry .jdd-mark-large {
+    width: 140px;
+    height: auto;
+    max-height: 140px;
+    margin-top: 16px;
+    object-fit: contain;
+  }
+  .screen-entry .entry-brand {
+    margin-top: 18px;
+    font-family: var(--serif);
+    font-size: 16px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+  }
+  .screen-entry .entry-center { display: flex; flex-direction: column; align-items: center; gap: 28px; max-width: 860px; }
+  .screen-entry h1 {
+    font-family: var(--serif);
+    font-size: clamp(34px, 5.6vw, 72px);
+    line-height: 1.08;
+    letter-spacing: 0.06em;
+    font-weight: 400;
+  }
+  .screen-entry .entry-sub {
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .screen-entry .entry-actions { display: flex; flex-direction: column; align-items: center; gap: 18px; margin-bottom: 8px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 14px;
+    padding: 14px 28px;
+    font-family: var(--serif);
+    font-size: 13px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    border: 1px solid var(--ink);
+    transition: background .35s var(--ease), color .35s var(--ease);
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--ink); color: var(--bg); }
+  .btn--ghost {
+    padding: 10px 0; border: 0;
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: var(--muted);
+  }
+  .btn--ghost:hover { background: none; color: var(--ink); }
+
+  .entry-actions .sub-label {
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* 2. REALMS */
+  .screen-realms { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 64px; }
+  .realm-list { display: flex; flex-direction: column; gap: 28px; align-items: center; }
+  .realm-item {
+    font-family: var(--serif);
+    font-size: clamp(28px, 4.4vw, 56px);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    padding: 6px 2px;
+    transition: letter-spacing .5s var(--ease), opacity .3s var(--ease);
+  }
+  .realm-item::after {
+    content: ""; position: absolute;
+    left: 50%; bottom: -4px;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--ink);
+    transform: translateX(-50%) scale(0);
+    transition: transform .4s var(--ease);
+  }
+  .realm-item:hover { letter-spacing: 0.18em; }
+  .realm-item:hover::after { transform: translateX(-50%) scale(1); }
+  .realm-list:hover .realm-item:not(:hover) { opacity: .35; }
+
+  /* 3. STATES CATALOG */
+  .screen-states { flex-direction: column; align-items: stretch; gap: 56px; }
+  .states-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+  .states-header h2 {
+    font-family: var(--serif);
+    font-size: clamp(28px, 3.8vw, 44px);
+    letter-spacing: 0.14em;
+    font-weight: 400;
+  }
+  .states-header .lede {
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .states-filter { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+  .states-filter button {
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 2px;
+    position: relative;
+    transition: color .3s var(--ease);
+  }
+  .states-filter button::after {
+    content: ""; position: absolute;
+    left: 50%; bottom: -6px;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--ink);
+    transform: translateX(-50%) scale(0);
+    transition: transform .3s var(--ease);
+  }
+  .states-filter button:hover, .states-filter button.is-active { color: var(--ink); }
+  .states-filter button.is-active::after { transform: translateX(-50%) scale(1); }
+
+  .realm-block {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 56px;
+    padding: 56px 0;
+    border-top: 1px solid var(--ink);
+  }
+  .realm-block:last-child { border-bottom: 1px solid var(--ink); }
+  .realm-block .realm-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+  }
+  .realm-block .realm-title small {
+    display: block; margin-top: 12px;
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    color: var(--muted);
+    font-weight: 300;
+    text-transform: uppercase;
+  }
+  .states-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+  .state-cell {
+    padding: 4px 24px 4px 0;
+    cursor: pointer;
+    position: relative;
+    transition: transform .4s var(--ease), opacity .3s var(--ease);
+  }
+  .state-cell:hover { transform: translateY(-2px); }
+  .states-grid:hover .state-cell:not(:hover) { opacity: .45; }
+  .state-cell .state-name {
+    font-family: var(--serif);
+    font-size: 18px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .state-cell .state-name .lock-ico {
+    width: 16px; height: 16px;
+    display: inline-block;
+    color: var(--ink);
+    flex-shrink: 0;
+    transform: translateY(-1px);
+  }
+  .state-cell.is-locked .lock-ico { color: var(--muted); }
+  .state-cell.is-locked .state-name .label-text {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: currentColor;
+  }
+  .state-cell .state-core {
+    margin-top: 12px;
+    font-family: var(--sans);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 300;
+  }
+  .state-cell .state-status {
+    margin-top: 18px;
+    font-family: var(--sans);
+    font-size: 9px;
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .state-cell.is-locked { cursor: default; }
+  .state-cell.is-locked .state-status { color: var(--muted); }
+
+  /* HOVER = possibility. Single-tone copper, no gradient. */
+  .state-cell:not(.is-locked):hover .label-text {
+    color: var(--copper);
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--copper);
+    transition: color .3s var(--ease);
+  }
+  .state-cell:not(.is-locked):hover .lock-ico { color: var(--copper); }
+
+  /* CHOSEN = decision. Copper gradient, persistent.
+     Once a state is chosen, every other state in the catalog dims —
+     hierarchy emerges. Only the chosen one speaks. */
+  .state-cell.is-chosen .label-text {
+    color: var(--copper-deep);
+    background: linear-gradient(90deg, var(--copper-deep) 0%, var(--copper) 55%, var(--copper-light) 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+  }
+  .state-cell.is-chosen .lock-ico { color: var(--copper-deep); }
+  .state-cell.is-chosen .state-status { color: var(--copper-deep); }
+  .states-grid.has-chosen .state-cell:not(.is-chosen) { opacity: .35; }
+  .states-grid.has-chosen .state-cell:not(.is-chosen):hover { opacity: .8; }
+
+  /* 4. STATE WINDOW */
+  .modal {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 80;
+    animation: fadeIn .35s var(--ease);
+    padding: var(--pad);
+  }
+  .modal.active { display: flex; }
+  .modal-content {
+    max-width: 720px; width: 100%;
+    text-align: center;
+    display: flex; flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+  .modal-content h3 {
+    font-family: var(--serif);
+    font-size: clamp(36px, 5.2vw, 68px);
+    letter-spacing: 0.12em;
+    line-height: 1.05;
+    font-weight: 400;
+    transition: color .9s var(--ease), background .9s var(--ease);
+  }
+  /* When user commits to a state, name flows to copper for ~0.9s before the form opens. */
+  .modal-content h3.is-activating {
+    color: var(--copper-deep);
+    background: linear-gradient(90deg, var(--copper-deep) 0%, var(--copper) 55%, var(--copper-light) 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .modal-content .state-tag {
+    font-family: var(--serif);
+    font-size: 16px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .modal-meta {
+    display: flex; flex-direction: column; gap: 0;
+    margin-top: 8px;
+    max-width: 540px; width: 100%;
+  }
+  .modal-meta .row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 24px;
+    text-align: left;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--ink);
+  }
+  .modal-meta .row:first-child { border-top: 1px solid var(--ink); }
+  .modal-meta .row .label {
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+    align-self: center;
+  }
+  .modal-meta .row .value {
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .modal-meta .row .value.locked { color: var(--muted); }
+  .modal-actions { display: flex; gap: 32px; align-items: center; margin-top: 18px; }
+
+  /* 5. FORM */
+  .screen-form { flex-direction: column; align-items: center; gap: 56px; }
+  .form-head { text-align: center; display: flex; flex-direction: column; gap: 14px; }
+  .form-head h2 {
+    font-family: var(--serif);
+    font-size: clamp(28px, 4vw, 52px);
+    letter-spacing: 0.14em;
+    font-weight: 400;
+  }
+  .form-head .selected-state {
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .form-head .selected-state strong {
+    font-family: var(--serif);
+    font-weight: 400;
+    letter-spacing: 0.24em;
+    margin-left: 8px;
+    /* Decision carried into the form — copper gradient. */
+    color: var(--copper-deep);
+    background: linear-gradient(90deg, var(--copper-deep) 0%, var(--copper) 55%, var(--copper-light) 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .form-body { width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: 36px; }
+  .field {
+    display: flex; flex-direction: column;
+    gap: 10px;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 6px;
+  }
+  .field label {
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .field input {
+    font-family: var(--serif);
+    font-size: 18px;
+    letter-spacing: 0.08em;
+    padding: 4px 0;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+  .field input::placeholder {
+    color: var(--muted-soft);
+    opacity: 1;
+    font-family: var(--serif);
+    letter-spacing: 0.08em;
+  }
+  .form-actions { display: flex; gap: 32px; align-items: center; margin-top: 8px; }
+
+  /* 6. AFTER SUBMIT */
+  .screen-submitted { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 36px; }
+  .screen-submitted h2 {
+    font-family: var(--serif);
+    font-size: clamp(34px, 5vw, 64px);
+    letter-spacing: 0.14em;
+    font-weight: 400;
+  }
+  .screen-submitted .submitted-copy {
+    max-width: 520px;
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    line-height: 1.9;
+    color: var(--muted);
+  }
+  .screen-submitted .submitted-copy strong {
+    font-family: var(--serif);
+    letter-spacing: 0.24em;
+    font-weight: 400;
+    /* Decision sealed — copper gradient. */
+    color: var(--copper-deep);
+    background: linear-gradient(90deg, var(--copper-deep) 0%, var(--copper) 55%, var(--copper-light) 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* 7. ABOUT modal */
+  .modal-about .modal-content { max-width: 580px; gap: 36px; }
+  .about-brand { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .about-brand .name {
+    font-family: var(--serif);
+    font-size: 20px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .about-brand .role {
+    font-family: var(--serif-italic);
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: none;
+  }
+  .modal-about h3 {
+    font-size: clamp(30px, 4.4vw, 54px);
+    letter-spacing: 0.18em;
+    margin-top: 20px;
+  }
+  .about-copy {
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 14px;
+    line-height: 2.1;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    max-width: 460px;
+    margin-top: 8px;
+  }
+  .about-copy p + p { margin-top: 16px; }
+  .about-copy .dim { color: var(--muted); }
+
+  /* 8. IMMERSIVE DESERT */
+  .desert-hero {
+    position: fixed; inset: 0;
+    z-index: 90;
+    display: none;
+    background: #E2DDD4 url("https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=2400&q=85") center 60% / cover no-repeat;
+    filter: grayscale(1) contrast(.96) brightness(1.05);
+    animation: fadeIn .5s var(--ease);
+  }
+  .desert-hero.active { display: block; }
+  .desert-controls { position: absolute; inset: 0; pointer-events: none; }
+  .desert-controls > * { pointer-events: auto; }
+
+  .desert-return, .desert-sound {
+    position: absolute;
+    font-family: var(--serif);
+    font-size: 11px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    padding: 0;
+    border: 0;
+    color: #FFFFFF;
+    background: transparent;
+    transition: opacity .3s var(--ease);
+    display: inline-flex; align-items: center; gap: 12px;
+    cursor: pointer;
+  }
+  .desert-return:hover, .desert-sound:hover { opacity: .7; }
+  .desert-sound .sound-bars span { background: currentColor; }
+  .desert-return { top: 24px; left: var(--pad); }
+  .desert-sound { top: 24px; right: var(--pad); }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .realm-block { grid-template-columns: 1fr; gap: 24px; }
+    .states-grid { grid-template-columns: repeat(2, 1fr); row-gap: 28px; }
+    .modal-meta .row { grid-template-columns: 1fr; gap: 4px; }
+    .frame-top nav { gap: 18px; }
+    .brand .wordmark { display: none; }
+  }
+  @media (max-width: 600px) {
+    .states-grid { grid-template-columns: 1fr; row-gap: 24px; }
+    .btn { padding: 12px 20px; font-size: 11px; letter-spacing: 0.34em; }
+    .modal-actions, .form-actions { flex-direction: column; gap: 18px; }
+  }
+
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+
+<!-- Lock icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ico-unlock" viewBox="0 0 18 18">
+      <rect x="3" y="9" width="9" height="8" fill="none" stroke="currentColor" stroke-width="1.1"/>
+      <path d="M5 9 V5.5 a3.5 3.5 0 0 1 6.5 -1.7" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="ico-lock" viewBox="0 0 18 18">
+      <rect x="3" y="9" width="9" height="8" fill="none" stroke="currentColor" stroke-width="1.1"/>
+      <path d="M5 9 V6 a3.5 3.5 0 0 1 7 0 V9" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <header class="frame-top">
+    <div class="brand" role="button" onclick="go('entry')" aria-label="Jardin du Désert · home">
+      <svg class="jdd-mark" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M30 18 H80"/>
+          <path d="M55 18 V62 Q55 82 35 82 Q20 82 16 68"/>
+          <path d="M16 68 Q10 64 12 56"/>
+          <path d="M88 70 Q94 64 92 56"/>
+          <path d="M70 38 Q68 56 70 70"/>
+          <path d="M76 34 Q78 56 76 70"/>
+          <path d="M82 40 Q84 58 80 70"/>
+        </g>
+      </svg>
+      <span class="wordmark">Jardin du Désert</span>
+    </div>
+    <nav>
+      <button class="nav-btn" onclick="go('realms')">STATES</button>
+      <button class="nav-btn" onclick="openAbout()">ABOUT</button>
+      <button class="nav-btn" onclick="openDesert()">DESERT</button>
+    </nav>
+  </header>
+
+  <footer class="frame-bottom">
+    <div class="micro">EST. 2026 · 22 STATES</div>
+    <div class="micro">SCENT · RITUAL · TERRITORY</div>
+  </footer>
+
+  <!-- 1. ENTRY -->
+  <section class="screen screen-entry active" id="screen-entry">
+    <div class="entry-logo">
+      <img class="jdd-mark-large" id="entry-logo-img" src="./assets/jdd-logo.png" alt="Jardin du Désert"
+           onerror="this.style.display='none'; document.getElementById('entry-logo-svg').style.display='block';">
+      <svg id="entry-logo-svg" class="jdd-mark-large" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:none;">
+        <g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M82 30 H170"/>
+          <path d="M84 28 V42"/>
+          <path d="M126 30 V118"/>
+          <path d="M126 118 Q126 150 92 150 Q66 150 54 128"/>
+          <path d="M54 128 Q38 122 38 108 Q40 96 54 100 Q60 110 50 114"/>
+          <path d="M148 72 Q146 102 152 132"/>
+          <path d="M158 62 Q162 100 156 132"/>
+          <path d="M168 74 Q172 104 162 132"/>
+          <path d="M142 132 H176"/>
+          <path d="M188 132 Q206 130 206 114 Q204 100 190 102 Q184 112 194 116"/>
+          <path d="M188 132 Q178 140 162 132"/>
+        </g>
+      </svg>
+      <div class="entry-brand">Jardin du Désert</div>
+    </div>
+
+    <div class="entry-center">
+      <h1>The Space<br>Is Yours.</h1>
+      <div class="entry-sub">Choose the state your property will live from.</div>
+    </div>
+
+    <div class="entry-actions">
+      <button class="btn" onclick="go('realms')">
+        <span>Enter</span>
+        <span aria-hidden="true">→</span>
+      </button>
+      <div class="sub-label">FOR HOSPITALITY · SECURE STATE SOVEREIGNTY</div>
+    </div>
+  </section>
+
+  <!-- 2. REALMS -->
+  <section class="screen screen-realms" id="screen-realms">
+    <div class="micro">SELECT REALM · 01 / 04</div>
+    <div class="realm-list">
+      <div class="realm-item" onclick="filterRealm('BODY')">BODY REALM</div>
+      <div class="realm-item" onclick="filterRealm('MIND')">MIND REALM</div>
+      <div class="realm-item" onclick="filterRealm('HEART')">HEART REALM</div>
+      <div class="realm-item" onclick="filterRealm('SOUL')">SOUL REALM</div>
+      <div class="realm-item" onclick="filterRealm('SPIRIT')">SPIRIT REALM</div>
+    </div>
+    <button class="btn--ghost" onclick="filterRealm('ALL')">VIEW ALL STATES →</button>
+  </section>
+
+  <!-- 3. STATES CATALOG -->
+  <section class="screen screen-states" id="screen-states">
+    <div class="states-header">
+      <div class="micro">CATALOG</div>
+      <h2>State Catalog</h2>
+      <div class="lede">1 State · 1 Property · 1 Scent · 1 Ritual</div>
+      <div class="states-filter" id="states-filter">
+        <button class="is-active" data-realm="ALL">ALL</button>
+        <button data-realm="BODY">BODY</button>
+        <button data-realm="MIND">MIND</button>
+        <button data-realm="HEART">HEART</button>
+        <button data-realm="SOUL">SOUL</button>
+        <button data-realm="SPIRIT">SPIRIT</button>
+      </div>
+    </div>
+    <div id="states-list"></div>
+    <div style="display:flex;justify-content:center;margin-top:32px;">
+      <button class="btn--ghost" onclick="go('realms')">← BACK TO REALMS</button>
+    </div>
+  </section>
+
+  <!-- 5. FORM -->
+  <section class="screen screen-form" id="screen-form">
+    <div class="form-head">
+      <div class="micro">RESIDENCY · 03 / 04</div>
+      <h2>Apply for Residency</h2>
+      <div class="selected-state">SELECTED STATE <strong id="form-selected-state">—</strong></div>
+    </div>
+    <form class="form-body" id="residency-form" onsubmit="submitForm(event)">
+      <div class="field">
+        <label for="f-property">Property Name</label>
+        <input id="f-property" name="property" type="text" placeholder="e.g. Atelier Ibiza" required>
+      </div>
+      <div class="field">
+        <label for="f-location">Location · City / Country</label>
+        <input id="f-location" name="location" type="text" placeholder="e.g. Ibiza, Spain" required>
+      </div>
+      <div class="field">
+        <label for="f-concept">Concept</label>
+        <input id="f-concept" name="concept" type="text" placeholder="one-line concept" required>
+      </div>
+      <div class="field">
+        <label for="f-email">Contact Email</label>
+        <input id="f-email" name="email" type="email" placeholder="you@property.com" required>
+      </div>
+      <div class="form-actions">
+        <button class="btn" type="submit">SECURE THE CODE</button>
+        <button class="btn--ghost" type="button" onclick="go('states')">← BACK</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- 6. AFTER SUBMIT -->
+  <section class="screen screen-submitted" id="screen-submitted">
+    <div class="micro">RECEIVED · 04 / 04</div>
+    <h2>Application Received</h2>
+    <p class="submitted-copy">
+      Your request for STATE <strong id="sub-state">—</strong> is under review.
+      <br><br>
+      We will follow up with you personally to present the full model,
+      territory terms, and installation.
+    </p>
+    <button class="btn" onclick="go('states')">RETURN TO STATES</button>
+  </section>
+
+  <!-- 4. STATE WINDOW -->
+  <div class="modal" id="state-modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div class="micro" id="sm-realm">REALM</div>
+      <h3 id="sm-name">CLARITY</h3>
+      <div class="state-tag" id="sm-tagline">Live in the light.</div>
+      <div class="modal-meta">
+        <div class="row">
+          <div class="label">Allocation</div>
+          <div class="value">1 Fragrance · 1 Property · 1 State</div>
+        </div>
+        <div class="row">
+          <div class="label">Format</div>
+          <div class="value">Scent · Ritual · State Integration</div>
+        </div>
+        <div class="row">
+          <div class="label">Business Case</div>
+          <div class="value" id="sm-business">—</div>
+        </div>
+        <div class="row">
+          <div class="label">Status</div>
+          <div class="value" id="sm-status">AVAILABLE</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="sm-claim" onclick="claimState()">CLAIM THIS STATE</button>
+        <button class="btn--ghost" onclick="closeModal('state-modal')">← BACK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. ABOUT -->
+  <div class="modal modal-about" id="about-modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div class="about-brand">
+        <div class="name">Jardin du Désert</div>
+        <div class="role">Private Intellectual Fragrance House</div>
+      </div>
+      <h3>The Desert<br>Is A System</h3>
+      <div class="about-copy">
+        <p>A state-based system for hospitality environments.</p>
+        <p>We define the state from which decisions are made.</p>
+        <p>We translate <strong>22 states</strong> into spatial experience.</p>
+        <p class="dim">Each state is assigned to one property only.<br>1 Fragrance · 1 Property · 1 State.</p>
+        <p>The state shapes the space — and the people who choose it.</p>
+        <p>Properties don't design spaces. They operate states.</p>
+      </div>
+      <button class="btn--ghost" onclick="closeModal('about-modal')">← CLOSE</button>
+    </div>
+  </div>
+
+  <!-- 8. IMMERSIVE DESERT -->
+  <div class="desert-hero" id="desert-hero">
+    <div class="desert-controls">
+      <button class="desert-sound sound-ctl is-off" id="sound-ctl" onclick="toggleSound()" aria-label="Toggle sound">
+        <span>SOUND</span>
+        <span class="sound-bars" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </span>
+      </button>
+      <button class="desert-return" onclick="closeDesert()">
+        <span aria-hidden="true">←</span>
+        <span>CLICK TO RETURN</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const REALMS = {
+    BODY: { title: "BODY REALM", sub: "Ground · Nourish · Move · Reset", states: [
+      { name: "NURTURING",      core: "Nourish what matters",     biz: "Ideal for wellness retreats and regenerative environments.",            status: "AVAILABLE" },
+      { name: "STABILITY",      core: "Establish your ground",    biz: "Creates control and grounding for business-class properties.",          status: "AVAILABLE" },
+      { name: "VITAL ENERGY",   core: "Release the pressure",     biz: "Designed for lifestyle hotels focused on energy and movement.",         status: "AVAILABLE" },
+      { name: "PHYSICAL RESET", core: "Reset the rhythm",         biz: "Supports recovery, jet lag reset, and physical recalibration.",         status: "AVAILABLE" }
+    ]},
+    MIND: { title: "MIND REALM", sub: "Focus · Truth · Shift · See", states: [
+      { name: "INNER TRUTH",    core: "Look within",              biz: "Enhances clarity and authentic decision-making.",                       status: "AVAILABLE" },
+      { name: "DIRECTION",      core: "Command your focus",       biz: "Sharpens focus in high-performance environments.",                      status: "AVAILABLE" },
+      { name: "AWAKENING",      core: "Break the old",            biz: "Creates transformative guest experiences.",                             status: "AVAILABLE" },
+      { name: "PERSPECTIVE",    core: "Change the view",          biz: "Encourages strategic thinking and mental detachment.",                  status: "AVAILABLE" }
+    ]},
+    HEART: { title: "HEART REALM", sub: "Connect · Center · Desire · Create", states: [
+      { name: "CONNECTION",     core: "Align your values",        biz: "Strengthens emotional engagement and guest connection.",                status: "AVAILABLE" },
+      { name: "BALANCE",        core: "Find your center",         biz: "Recalibrates the nervous system in urban environments.",                status: "AVAILABLE" },
+      { name: "DESIRE",         core: "Embrace the fire",         biz: "Activates attraction, sensuality, and brand magnetism.",                status: "AVAILABLE" },
+      { name: "INSPIRATION",    core: "Follow the vision",        biz: "Enhances creativity and aesthetic perception.",                         status: "AVAILABLE" }
+    ]},
+    SOUL: { title: "SOUL REALM", sub: "Know · Release · Harmonize · Intuit", states: [
+      { name: "INNER KNOWING",  core: "Know without words",       biz: "Deepens intuition and inner calm.",                                     status: "AVAILABLE" },
+      { name: "RELEASE",        core: "Let go to become",         biz: "Facilitates emotional reset and psychological release.",                status: "AVAILABLE" },
+      { name: "HARMONY",        core: "Blend the opposites",      biz: "Creates seamless, elevated guest experience.",                          status: "AVAILABLE" },
+      { name: "INTUITION",      core: "Trust the flow",           biz: "Enhances sensitivity to environment and perception.",                   status: "AVAILABLE" }
+    ]},
+    SPIRIT: { title: "SPIRIT REALM", sub: "Illuminate · Renew · Complete · Listen", states: [
+      { name: "CLARITY",        core: "Live in the light",        biz: "Delivers absolute clarity and high-end positioning.",                   status: "LOCKED · IBIZA" },
+      { name: "RENEWAL",        core: "Step into the future",     biz: "Ideal for repositioning and new chapter experiences.",                  status: "AVAILABLE" },
+      { name: "WHOLENESS",      core: "Complete the journey",     biz: "Creates a sense of fulfillment, the end of searching.",                 status: "AVAILABLE" },
+      { name: "WISDOM",         core: "Hear the inner guide",     biz: "Supports reflection, learning, and depth.",                             status: "LOCKED · BALI" }
+    ]}
+  };
+
+  let activeRealm = "ALL";
+  let currentState = null;
+  // The state the user has committed to (post-CLAIM). Persisted so the catalog
+  // shows hierarchy: chosen state stays in copper, others dim to neutral.
+  let chosenState = null; // { realmKey, idx, name }
+
+  function go(screen) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + screen).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function filterRealm(realm) {
+    activeRealm = realm;
+    document.querySelectorAll('#states-filter button').forEach(b => {
+      b.classList.toggle('is-active', b.dataset.realm === realm);
+    });
+    renderStates();
+    go('states');
+  }
+
+  function renderStates() {
+    const host = document.getElementById('states-list');
+    host.innerHTML = '';
+    const realmsToShow = activeRealm === 'ALL' ? Object.keys(REALMS) : [activeRealm];
+    const chosenInView = chosenState && (activeRealm === 'ALL' || chosenState.realmKey === activeRealm);
+    realmsToShow.forEach(key => {
+      const realm = REALMS[key];
+      const block = document.createElement('div');
+      block.className = 'realm-block';
+      block.innerHTML = `
+        <div class="realm-title">${realm.title}<small>${realm.sub}</small></div>
+        <div class="states-grid${chosenInView ? ' has-chosen' : ''}">
+          ${realm.states.map((s, i) => {
+            const isLocked = s.status.startsWith('LOCKED');
+            const isChosen = chosenState && chosenState.realmKey === key && chosenState.idx === i;
+            const ico = isLocked ? 'ico-lock' : 'ico-unlock';
+            const cellClasses = ['state-cell'];
+            if (isLocked) cellClasses.push('is-locked');
+            if (isChosen) cellClasses.push('is-chosen');
+            return `
+              <div class="${cellClasses.join(' ')}"
+                   onclick="openState('${key}', ${i})">
+                <div class="state-name">
+                  <svg class="lock-ico" aria-hidden="true"><use href="#${ico}"/></svg>
+                  <span class="label-text">${s.name}</span>
+                </div>
+                <div class="state-core">${s.core}.</div>
+                <div class="state-status">${isChosen ? 'CHOSEN' : s.status}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+      host.appendChild(block);
+    });
+  }
+
+  function openState(realmKey, idx) {
+    const realm = REALMS[realmKey];
+    const s = realm.states[idx];
+    const isLocked = s.status.startsWith('LOCKED');
+    currentState = { realmKey, idx, ...s };
+    document.getElementById('sm-realm').textContent = realm.title;
+    document.getElementById('sm-name').textContent = s.name;
+    document.getElementById('sm-tagline').textContent = s.core + '.';
+    document.getElementById('sm-business').textContent = s.biz;
+    const statusEl = document.getElementById('sm-status');
+    statusEl.textContent = s.status;
+    statusEl.classList.toggle('locked', isLocked);
+    const claimBtn = document.getElementById('sm-claim');
+    if (isLocked) {
+      claimBtn.textContent = s.status;
+      claimBtn.style.opacity = '0.4';
+      claimBtn.style.pointerEvents = 'none';
+    } else {
+      claimBtn.textContent = 'CLAIM THIS STATE';
+      claimBtn.style.opacity = '1';
+      claimBtn.style.pointerEvents = 'auto';
+    }
+    openModal('state-modal');
+  }
+
+  function claimState() {
+    if (!currentState || currentState.status.startsWith('LOCKED')) return;
+    // Mark the choice — this is the moment the state activates.
+    chosenState = { realmKey: currentState.realmKey, idx: currentState.idx, name: currentState.name };
+    document.getElementById('form-selected-state').textContent = currentState.name;
+
+    // Flow the modal title to copper for ~0.9s, then advance to the form.
+    const title = document.getElementById('sm-name');
+    title.classList.add('is-activating');
+    setTimeout(() => {
+      title.classList.remove('is-activating');
+      closeModal('state-modal');
+      renderStates(); // catalog now reflects the chosen state in copper
+      go('form');
+    }, 900);
+  }
+
+  function submitForm(e) {
+    e.preventDefault();
+    document.getElementById('sub-state').textContent = currentState ? currentState.name : '—';
+    go('submitted');
+  }
+
+  function openModal(id) {
+    document.getElementById(id).classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  function openAbout() { openModal('about-modal'); }
+  function openDesert() { document.getElementById('desert-hero').classList.add('active'); }
+  function closeDesert() { document.getElementById('desert-hero').classList.remove('active'); }
+
+  function toggleSound() {
+    const el = document.getElementById('sound-ctl');
+    const on = el.classList.toggle('is-on');
+    el.classList.toggle('is-off', !on);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal('state-modal');
+      closeModal('about-modal');
+      closeDesert();
+    }
+  });
+
+  document.querySelectorAll('#states-filter button').forEach(b => {
+    b.addEventListener('click', () => filterRealm(b.dataset.realm));
+  });
+  renderStates();
+</script>
+</body>
+</html>

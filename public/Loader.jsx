@@ -1,0 +1,106 @@
+// Loader.jsx
+import React, { useState } from 'react'
+import { useProgress } from '@react-three/drei'
+
+const Loader = ({ onStart }) => {
+  const { progress } = useProgress()
+  const isComplete = progress === 100
+  const [fading, setFading] = useState(false)
+
+  const handleStart = () => {
+    setFading(true)
+    setTimeout(onStart, 800) // wait for fade animation to finish
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        backgroundColor: 'rgba(0, 0, 0, 0.35)',
+        transition: 'opacity 0.8s ease',
+        opacity: fading ? 0 : 1,
+        pointerEvents: fading ? 'none' : 'auto',
+      }}
+    >
+      {/* Company name */}
+      <h1
+        style={{
+          color: 'rgba(255,255,255,0.9)',
+          fontSize: '2rem',
+          fontWeight: '300',
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
+          marginBottom: '3rem',
+        }}
+      >
+        COMPANY NAME
+      </h1>
+
+      {/* Progress bar */}
+      <div
+        style={{
+          width: '200px',
+          height: '1px',
+          background: 'rgba(255,255,255,0.2)',
+          marginBottom: '1rem',
+        }}
+      >
+        <div
+          style={{
+            height: '100%',
+            width: `${progress}%`,
+            background: 'rgba(255,255,255,0.8)',
+            transition: 'width 0.3s ease',
+          }}
+        />
+      </div>
+
+      {/* Percentage */}
+      <p
+        style={{
+          color: 'rgba(255,255,255,0.6)',
+          fontSize: '0.85rem',
+          letterSpacing: '0.1em',
+          marginBottom: '2.5rem',
+          transition: 'opacity 0.5s ease',
+          opacity: isComplete ? 0 : 1,
+        }}
+      >
+        {Math.round(progress)}%
+      </p>
+
+      {/* Start button — only appears at 100% */}
+      <button
+        onClick={handleStart}
+        style={{
+          opacity: isComplete ? 1 : 0,
+          transform: isComplete ? 'translateY(0)' : 'translateY(10px)',
+          transition: 'opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s',
+          pointerEvents: isComplete ? 'auto' : 'none',
+          background: 'transparent',
+          border: '1px solid rgba(255,255,255,0.6)',
+          color: 'rgba(255,255,255,0.9)',
+          padding: '12px 40px',
+          fontSize: '0.8rem',
+          letterSpacing: '0.25em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+        }}
+        onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.1)'}
+        onMouseLeave={e => e.target.style.background = 'transparent'}
+      >
+        Enter
+      </button>
+    </div>
+  )
+}
+
+export default Loader
