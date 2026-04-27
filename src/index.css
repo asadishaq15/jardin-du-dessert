@@ -1,27 +1,7 @@
 /* ————— FONTS ————— */
 @font-face {
-  font-family: 'Requiem Fine';
+  font-family: 'Requiem Fine HTF Roman';
   src: url('/Requiem Fine-HTF- Roman/Requiem Fine-HTF- Roman.otf') format('opentype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Grand Slang';
-  src: url('/GrandSlang-Roman/web/font/GrandSlang-Roman.woff2') format('woff2'),
-       url('/GrandSlang-Roman/web/font/GrandSlang-Roman.woff') format('woff'),
-       url('/GrandSlang-Roman/web/font/GrandSlang-Roman.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Keep legacy alias so existing 3D scene labels still resolve */
-@font-face {
-  font-family: 'GrandSlang-Roman';
-  src: url('/GrandSlang-Roman/web/font/GrandSlang-Roman.woff2') format('woff2'),
-       url('/GrandSlang-Roman/web/font/GrandSlang-Roman.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -45,16 +25,17 @@ a { color: inherit; text-decoration: none; }
   --copper-deep: #9A5A2E;
   --copper-light: #E6B98A;
   --pad: clamp(24px, 4vw, 56px);
-  --serif: "Requiem Fine", "Grand Slang", "Italiana", "Cormorant Garamond", Georgia, serif;
-  --serif-italic: "Requiem Fine", "Cormorant Garamond", Georgia, serif;
-  --sans: "Requiem Fine", "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --serif: "Requiem Fine HTF Roman", "Italiana", "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  --font-requiem: var(--serif);
+  --serif-italic: "Cormorant Garamond", "Italiana", Georgia, serif;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   --ease: cubic-bezier(.22,.61,.36,1);
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-weight: 300;
   font-size: 14px;
   line-height: 1.6;
@@ -89,7 +70,22 @@ body {
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 /* ————— APP SHELL ————— */
-.app { position: relative; min-height: 100vh; }
+.app {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Grows so footer sits at bottom of viewport when content is short; follows content when long */
+.app-main {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 
 /* ————— FRAME TOP (Navbar) ————— */
 .frame-top {
@@ -99,7 +95,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 24px var(--pad);
-  z-index: 50;
+  z-index: 60;
   pointer-events: none;
 }
 .frame-top > * { pointer-events: auto; }
@@ -198,33 +194,43 @@ body {
 
 /* ————— FRAME BOTTOM (Footer) ————— */
 .frame-bottom {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px var(--pad);
-  z-index: 50;
+  padding: 24px var(--pad) max(24px, env(safe-area-inset-bottom, 0px));
+  background: var(--bg);
   pointer-events: none;
 }
 .frame-bottom > * { pointer-events: auto; }
 .frame-bottom .micro { opacity: .7; }
 
+/* Desktop: one line “SCENT · RITUAL · TERRITORY”; mobile keeps two-line break */
+@media (min-width: 901px) {
+  .micro__br--mobile-only { display: none; }
+}
+
 /* ————— SCREENS ————— */
 .screen {
   display: none;
-  min-height: 100vh;
-  padding: 112px var(--pad) 96px;
+  padding: 112px var(--pad) 48px;
   animation: fadeIn .6s var(--ease);
 }
-.screen.active { display: flex; }
+.screen.active {
+  display: flex;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 100%;
+}
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
 /* 1. ENTRY */
 .screen-entry { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 64px; }
 .screen-entry .entry-center { display: flex; flex-direction: column; align-items: center; gap: 44px; max-width: 860px; }
 .screen-entry h1 {
-  font-family: var(--serif);
+  font-family: var(--font-requiem);
   font-size: clamp(34px, 5.6vw, 72px);
   line-height: 1.08;
   letter-spacing: 0.06em;
@@ -262,6 +268,10 @@ body {
   color: var(--ink);
 }
 .btn:hover { background: var(--ink); color: var(--bg); }
+/* Landing only: Enter CTA uses Requiem; other screens keep .btn serif stack */
+.screen-entry .entry-actions > .btn {
+  font-family: var(--font-requiem);
+}
 .btn--ghost {
   padding: 10px 0; border: 0;
   font-family: var(--sans);
@@ -698,102 +708,101 @@ body {
 .sound-ctl.is-off .sound-bars span { height: 4px; opacity: .35; }
 @keyframes barPulse { 0%,100% { height: 4px; } 50% { height: 12px; } }
 
-/* ————— RESPONSIVE ————— */
+/* ————— FRAME TOP · MOBILE (all pages: nav row → wordmark → cactus) ————— */
+@media (max-width: 900px) {
+  .frame-top {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    padding-top: max(20px, env(safe-area-inset-top, 0px));
+    padding-bottom: 20px;
+  }
 
-/* Tablet */
+  .frame-top nav {
+    order: 1;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    padding-inline: 12px;
+    box-sizing: border-box;
+  }
+
+  .frame-top .nav-btn {
+    flex: 0 0 auto;
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(0, 0, 0, 0.52);
+    white-space: nowrap;
+  }
+
+  .frame-top .brand {
+    order: 2;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .frame-top .brand .logo-wordmark {
+    order: 1;
+    width: min(218px, 72vw);
+    height: auto;
+  }
+
+  .frame-top .brand .logo-icon {
+    order: 2;
+    width: 48px;
+    height: auto;
+    margin-bottom: 16px;
+  }
+
+  /* Stacked header is taller — clear it on every screen */
+  .screen {
+    padding-top: clamp(160px, 41vw, 210px);
+  }
+
+  /* Entry landing: center hero in remaining viewport */
+  .screen.screen-entry {
+    justify-content: center;
+    min-height: 100%;
+    padding-bottom: 48px;
+    gap: clamp(36px, 8vw, 48px);
+  }
+
+  .screen.screen-entry .entry-center {
+    margin-top: 0;
+    gap: clamp(22px, 5.5vw, 34px);
+  }
+
+  .screen.screen-entry .entry-actions {
+    gap: 16px;
+  }
+}
+
+/* ————— RESPONSIVE ————— */
 @media (max-width: 900px) {
   .realm-block { grid-template-columns: 1fr; gap: 24px; }
   .states-grid { grid-template-columns: repeat(2, 1fr); row-gap: 28px; }
   .modal-meta .row { grid-template-columns: 1fr; gap: 4px; }
 
-  /* Header: shrink logo, tighten nav */
-  .frame-top { padding: 16px var(--pad); }
-  .frame-top nav { gap: 16px; }
-  .brand .logo-wordmark { width: 140px; }
-  .brand .logo-icon { width: 36px; }
-  .brand { gap: 8px; }
-
-  /* Footer: stack vertically */
-  .frame-bottom {
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 14px var(--pad);
-    text-align: center;
+  /* Footer microcopy: allow two-line wrap like reference (narrow viewports) */
+  .frame-bottom .micro {
+    max-width: 46%;
+    line-height: 1.5;
   }
-
-  /* Entry */
-  .screen-entry { gap: 40px; }
-  .screen-entry .entry-center { gap: 32px; }
-
-  /* Desert controls */
-  .desert-return { top: 16px; left: 20px; font-size: 10px; letter-spacing: 0.3em; }
-  .desert-controls .sound-btn { top: 16px; right: 20px; }
+  .frame-bottom .micro:last-child {
+    text-align: right;
+  }
 }
-
-/* Mobile */
 @media (max-width: 600px) {
-  /* Header: wrap to two rows — logo on top, nav below */
-  .frame-top {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    padding: 12px 16px;
-  }
-  .brand {
-    width: 100%;
-    justify-content: center;
-    gap: 6px;
-  }
-  .brand .logo-icon { width: 30px; }
-  .brand .logo-wordmark { width: 120px; }
-  .frame-top nav {
-    width: 100%;
-    justify-content: center;
-    gap: 14px;
-  }
-  .nav-btn { font-size: 9px; letter-spacing: 0.24em; }
-
-  /* Sound button in navbar */
-  .sound-btn {
-    font-size: 9px;
-    letter-spacing: 0.24em;
-    padding-left: 12px;
-    margin-left: 2px;
-  }
-
-  /* Footer: smaller text, tighter padding */
-  .frame-bottom {
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 10px 16px;
-    text-align: center;
-  }
-  .frame-bottom .micro { font-size: 8px; letter-spacing: 0.24em; }
-
-  /* Screens: tighter padding for mobile chrome */
-  .screen { padding: 100px 16px 80px; }
-
-  /* Entry */
-  .screen-entry { gap: 32px; }
-  .screen-entry .entry-center { gap: 24px; }
-  .screen-entry h1 { font-size: clamp(28px, 8vw, 48px); }
-  .screen-entry .entry-sub { font-size: 11px; letter-spacing: 0.16em; }
-
-  /* Buttons */
+  .states-grid { grid-template-columns: 1fr; row-gap: 24px; }
   .btn { padding: 12px 20px; font-size: 11px; letter-spacing: 0.34em; }
   .modal-actions, .form-actions { flex-direction: column; gap: 18px; }
-
-  /* States grid */
-  .states-grid { grid-template-columns: 1fr; row-gap: 24px; }
-
-  /* Desert controls: tighter to edges */
-  .desert-return { top: 12px; left: 14px; font-size: 9px; letter-spacing: 0.24em; gap: 6px; }
-  .desert-controls .sound-btn { top: 12px; right: 14px; }
-
-  /* Desert reveal modal */
-  .desert-reveal-panel { width: 92vw; max-width: 92vw; padding: 2rem 1.5rem; }
 }
 
 /* ————— DESERT LOADING ————— */
@@ -805,7 +814,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 1.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition: opacity 1.2s cubic-bezier(0.22, 0.61, 0.36, 1);
   pointer-events: none;
 }
 .desert-loading.is-fading { opacity: 0; }
@@ -814,39 +823,14 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
 }
 
-/* Logo reveal container */
-.desert-loading__logo {
-  width: 120px;
+.loading-symbol {
+  width: 60px;
   height: auto;
-  position: relative;
-}
-
-.loading-logo-reveal {
-  overflow: hidden;
-  animation: logoRevealClip 2.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.3s both;
-}
-
-.loading-logo-img {
-  width: 120px;
-  height: auto;
-  display: block;
-  opacity: 0;
-  animation: logoFadeIn 1.6s ease 0.3s forwards;
-}
-
-/* Reveal animation: clips from bottom to top, simulating a drawing effect */
-@keyframes logoRevealClip {
-  0%   { clip-path: inset(100% 0 0 0); }
-  100% { clip-path: inset(0 0 0 0); }
-}
-
-@keyframes logoFadeIn {
-  0%   { opacity: 0; }
-  30%  { opacity: 0.4; }
-  100% { opacity: 1; }
+  opacity: 0.8;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .desert-loading__text {
@@ -855,12 +839,6 @@ body {
   letter-spacing: 0.42em;
   text-transform: uppercase;
   color: #888;
-  opacity: 0;
-  animation: fadeInText 0.8s ease 1.2s forwards;
-}
-
-@keyframes fadeInText {
-  to { opacity: 1; }
 }
 
 .desert-loading__bar-container {
@@ -869,14 +847,12 @@ body {
   background: rgba(0,0,0,0.06);
   position: relative;
   overflow: hidden;
-  opacity: 0;
-  animation: fadeInText 0.6s ease 1.4s forwards;
 }
 
 .desert-loading__bar {
   position: absolute;
   inset: 0;
-  background: #B8723A;
+  background: #111;
   width: 30%;
   transform: translateX(-100%);
   animation: loadingBar 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
@@ -889,8 +865,14 @@ body {
   transition: width 0.6s ease;
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.98); }
+  50% { opacity: 0.8; transform: scale(1); }
+}
+
 @keyframes loadingBar {
   0% { transform: translateX(-100%); width: 10%; }
   50% { transform: translateX(50%); width: 30%; }
   100% { transform: translateX(200%); width: 10%; }
 }
+

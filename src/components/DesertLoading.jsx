@@ -3,8 +3,7 @@ import { useAssetReadyStore } from '../store/useAssetReadyStore'
 
 /**
  * Premium loading screen for the desert view.
- * Uses the actual brand logo PNG with a progressive reveal animation
- * that simulates a drawing effect from bottom to top.
+ * Fades out smoothly once sceneAssetsReady becomes true.
  */
 export default function DesertLoading() {
   const ready = useAssetReadyStore((s) => s.sceneAssetsReady)
@@ -14,7 +13,7 @@ export default function DesertLoading() {
   useEffect(() => {
     if (ready) {
       setIsFading(true)
-      const timer = setTimeout(() => setShouldRender(false), 1400)
+      const timer = setTimeout(() => setShouldRender(false), 1200)
       return () => clearTimeout(timer)
     }
   }, [ready])
@@ -25,13 +24,7 @@ export default function DesertLoading() {
     <div className={`desert-loading ${isFading ? 'is-fading' : ''}`}>
       <div className="desert-loading__content">
         <div className="desert-loading__logo">
-          <div className="loading-logo-reveal">
-            <img
-              src="/Logo1-new.png"
-              alt=""
-              className="loading-logo-img"
-            />
-          </div>
+          <img src="/Logo1-new.png" alt="" className="loading-symbol" />
         </div>
         <div className="desert-loading__text">Entering the Desert</div>
         <div className="desert-loading__bar-container">

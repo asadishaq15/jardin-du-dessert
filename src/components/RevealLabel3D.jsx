@@ -6,8 +6,8 @@ import { getRevealT } from '../store/revealProgressStore'
 import { useTopNavStore } from '../store/useTopNavStore'
 import { phaseLabelOpacity } from '../constants/revealTimeline'
 
-/** GrandSlang-Roman ttf is shipped from public/ — Drei `<Text>` (troika) loads via fetch. */
-const GRAND_SLANG_FONT = '/GrandSlang-Roman/web/font/GrandSlang-Roman.ttf'
+/** Requiem OTF from public/ — Drei `<Text>` (troika) loads via fetch. */
+const REQUIEM_FONT = '/Requiem%20Fine-HTF-%20Roman/Requiem%20Fine-HTF-%20Roman.otf'
 
 /** Draw above haze (DUST_RENDER_ORDER = 100_000) but below moon (100_001) is fine — labels are camera-facing. */
 const LABEL_RENDER_ORDER = 99_000
@@ -95,7 +95,7 @@ export function RevealLabel3D({
       <Billboard follow>
         <Text
           ref={textRef}
-          font={GRAND_SLANG_FONT}
+          font={REQUIEM_FONT}
           fontSize={fontSize}
           color={color}
           anchorX="center"

@@ -60,13 +60,14 @@ function App() {
   return (
     <div className="app">
       <FrameTop />
+      <main className="app-main">
+        {screen === 'entry' && <ScreenEntry />}
+        {screen === 'realms' && <ScreenRealms />}
+        {screen === 'states' && <ScreenStates />}
+        {screen === 'form' && <ScreenForm />}
+        {screen === 'submitted' && <ScreenSubmitted />}
+      </main>
       <FrameBottom />
-
-      {screen === 'entry' && <ScreenEntry />}
-      {screen === 'realms' && <ScreenRealms />}
-      {screen === 'states' && <ScreenStates />}
-      {screen === 'form' && <ScreenForm />}
-      {screen === 'submitted' && <ScreenSubmitted />}
 
       <StateModal />
       <AboutModalNew />

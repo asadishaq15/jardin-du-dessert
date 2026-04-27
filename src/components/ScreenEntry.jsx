@@ -12,7 +12,7 @@ export default function ScreenEntry() {
 
       <div className="entry-actions">
         <button className="btn" onClick={() => setScreen('realms')}>
-          <span>Enter</span>
+          <span>ENTER</span>
           <span aria-hidden="true">→</span>
         </button>
         <div className="sub-label">FOR HOSPITALITY · SECURE STATE SOVEREIGNTY</div>

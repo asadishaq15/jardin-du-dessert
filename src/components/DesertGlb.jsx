@@ -434,7 +434,7 @@ export function HoverMesh({
                 border: chipBorder,
                 boxShadow: chipShadow,
                 whiteSpace: chipStyle === 'stacked' ? 'normal' : 'nowrap',
-                fontFamily: "'GrandSlang-Roman', serif",
+                fontFamily: "'Requiem Fine HTF Roman', serif",
                 transition:
                   'background 0.15s ease, color 0.15s ease, box-shadow 0.3s ease, border-radius 0.3s ease',
                 textAlign: chipStyle === 'stacked' ? 'center' : 'left',
