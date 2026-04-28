@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useAssetReadyStore } from '../store/useAssetReadyStore'
+// import LogoDrawAnimation from './LogoDrawAnimation'
 
 /**
- * Premium loading screen for the desert view.
- * Fades out smoothly once sceneAssetsReady becomes true.
+ * Loading screen for the desert view.
+ * Displays the logo "drawn on paper" via SVG stroke animation,
+ * then fades out once sceneAssetsReady becomes true.
  */
 export default function DesertLoading() {
   const ready = useAssetReadyStore((s) => s.sceneAssetsReady)
@@ -24,7 +26,8 @@ export default function DesertLoading() {
     <div className={`desert-loading ${isFading ? 'is-fading' : ''}`}>
       <div className="desert-loading__content">
         <div className="desert-loading__logo">
-          <img src="/Logo1-new.png" alt="" className="loading-symbol" />
+          {/* <LogoDrawAnimation /> */}
+          <img src="/Logo1-new.png" alt="Jardin du Désert" className="loading-symbol" />
         </div>
         <div className="desert-loading__text">Entering the Desert</div>
         <div className="desert-loading__bar-container">

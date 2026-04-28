@@ -5,7 +5,7 @@ import { create } from 'zustand'
  * Mirrors the vanilla-JS `go()`, `filterRealm()`, `chosenState` from the HTML prototype.
  */
 export const useAppStore = create((set) => ({
-  /** Current visible screen: 'entry' | 'realms' | 'states' | 'form' | 'submitted' | 'desert' */
+  /** Current visible screen: 'entry' | 'realms' | 'states' | 'form' | 'submitted' | 'desert' | 'logo-test' */
   screen: 'entry',
   setScreen: (screen) => set({ screen }),
 

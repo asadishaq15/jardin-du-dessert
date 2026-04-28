@@ -8,6 +8,7 @@ import ScreenRealms from './components/ScreenRealms'
 import ScreenStates from './components/ScreenStates'
 import ScreenForm from './components/ScreenForm'
 import ScreenSubmitted from './components/ScreenSubmitted'
+// import ScreenLogoDrawTest from './components/ScreenLogoDrawTest'
 import StateModal from './components/StateModal'
 import AboutModalNew from './components/AboutModalNew'
 import DesertView from './components/DesertView'
@@ -66,6 +67,7 @@ function App() {
         {screen === 'states' && <ScreenStates />}
         {screen === 'form' && <ScreenForm />}
         {screen === 'submitted' && <ScreenSubmitted />}
+        {/* {screen === 'logo-test' && <ScreenLogoDrawTest />} */}
       </main>
       <FrameBottom />
 
