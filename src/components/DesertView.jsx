@@ -193,7 +193,7 @@ export default function DesertView() {
   }, [forceLandscape])
 
   return (
-    <div className={`desert-view${forceLandscape ? ' desert-view--force-landscape' : ''}`}>
+    <div className="desert-view">
       <div className="desert-view__viewport">
         <DesertLoading />
         <DesertScene started={true} scenePointerEvents={true} />

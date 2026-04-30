@@ -224,8 +224,10 @@ const DesertScene = ({ onHorizonClick, started = false, scenePointerEvents = tru
       <Canvas
         shadows
         style={{
-          height: '100vh',
-          width: '100%',
+          height: '100dvh',
+          minHeight: '100vh',
+          width: '100dvw',
+          minWidth: '100vw',
           display: 'block',
           background: '#050505',
           pointerEvents: scenePointerEvents ? 'auto' : 'none',

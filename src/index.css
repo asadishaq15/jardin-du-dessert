@@ -673,8 +673,10 @@ body {
 }
 .desert-view__viewport {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 100dvw;
+  width: 100vw;
+  height: 100dvh;
+  height: 100vh;
 }
 .desert-controls { position: absolute; inset: 0; pointer-events: none; z-index: 91; }
 .desert-controls > * { pointer-events: auto; }
@@ -784,20 +786,12 @@ body {
 @keyframes drh-overlay-out { to { opacity: 0; pointer-events: none } }
 
 @media (max-width: 900px) and (orientation: portrait) {
-  .desert-view--force-landscape .desert-view__viewport {
-    width: 100dvh;
-    width: 100vh;
-    height: 100vw;
-    transform-origin: top left;
-    transform: rotate(90deg) translateY(-100%);
-  }
-
-  .desert-view--force-landscape .desert-return {
+  .desert-return {
     top: max(16px, env(safe-area-inset-top, 0px));
     left: max(20px, env(safe-area-inset-left, 0px));
   }
 
-  .desert-view--force-landscape .desert-controls .sound-btn {
+  .desert-controls .sound-btn {
     top: max(16px, env(safe-area-inset-top, 0px));
     right: max(20px, env(safe-area-inset-right, 0px));
   }
