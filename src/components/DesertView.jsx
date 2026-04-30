@@ -27,6 +27,7 @@ export default function DesertView() {
   const toggle = useSoundStore((s) => s.toggle)
   const setPlaying = useSoundStore((s) => s.setPlaying)
   const [forceLandscape, setForceLandscape] = useState(false)
+  const [showRotateHint, setShowRotateHint] = useState(false)
 
   const handleReturn = () => {
     setPlaying(false)
@@ -99,11 +100,33 @@ export default function DesertView() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!forceLandscape) {
+      setShowRotateHint(false)
+      return undefined
+    }
+
+    setShowRotateHint(true)
+    const hideHintTimer = window.setTimeout(() => {
+      setShowRotateHint(false)
+    }, 6500)
+
+    return () => {
+      window.clearTimeout(hideHintTimer)
+    }
+  }, [forceLandscape])
+
   return (
     <div className={`desert-view${forceLandscape ? ' desert-view--force-landscape' : ''}`}>
       <div className="desert-view__viewport">
         <DesertLoading />
         <DesertScene started={true} scenePointerEvents={true} />
+        {showRotateHint && (
+          <div className="desert-rotate-hint" role="status" aria-live="polite">
+            <span className="desert-rotate-hint__icon" aria-hidden="true" />
+            <p>Rotate your phone for the best desert view</p>
+          </div>
+        )}
         <div className="desert-controls">
           <button className="desert-return" onClick={handleReturn}>
             <span aria-hidden="true">←</span>

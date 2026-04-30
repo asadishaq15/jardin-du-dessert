@@ -706,6 +706,69 @@ body {
 }
 .desert-controls .sound-btn .sound-btn__label { color: #555; }
 
+.desert-rotate-hint {
+  position: absolute;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 95;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #f5f5f5;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.desert-rotate-hint p {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.desert-rotate-hint__icon {
+  width: 14px;
+  height: 22px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  position: relative;
+  animation: desertRotatePhone 1.2s ease-in-out infinite;
+}
+
+.desert-rotate-hint__icon::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: 3px;
+  height: 1.5px;
+  transform: translateX(-50%);
+  border-radius: 99px;
+  background: currentColor;
+  opacity: 0.8;
+}
+
+@keyframes desertRotatePhone {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(90deg);
+  }
+  65% {
+    transform: rotate(90deg);
+  }
+}
+
 @media (max-width: 900px) and (orientation: portrait) {
   .desert-view--force-landscape .desert-view__viewport {
     width: 100dvh;
@@ -723,6 +786,24 @@ body {
   .desert-view--force-landscape .desert-controls .sound-btn {
     top: max(16px, env(safe-area-inset-top, 0px));
     right: max(20px, env(safe-area-inset-right, 0px));
+  }
+
+  .desert-view--force-landscape .desert-rotate-hint {
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 600px) {
+  .desert-rotate-hint {
+    max-width: calc(100vw - 24px);
+    padding: 10px 12px;
+    gap: 8px;
+    letter-spacing: 0.13em;
+    font-size: 9px;
+  }
+
+  .desert-rotate-hint p {
+    white-space: normal;
   }
 }
 
