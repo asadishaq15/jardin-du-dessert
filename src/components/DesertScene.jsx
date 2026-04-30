@@ -4,8 +4,6 @@ import { Environment } from '@react-three/drei'
 import { DesertGlb } from './DesertGlb'
 import { SceneMoon3D } from './SceneMoon3D'
 import { SceneSun3D, SUN_LAYER } from './SceneSun3D'
-import { SandAirFog } from './SandAirFog'
-import { DesertWindStreak } from './DesertWindStreak'
 import * as THREE from 'three'
 import {
   EffectComposer,
@@ -330,16 +328,6 @@ const DesertScene = ({
             cameraOffset={[-2.4, -0.4, -12]}
             fontSize={0.62}
           />
-          {/* Airborne dust haze: camera-attached billboards filling the full frustum */}
-          <SandAirFog
-            started={started}
-            cameraAttached
-            prominent={0.62}
-            mobileOptimized={mobileOptimized}
-            debug={import.meta.env.DEV}
-          />
-          {/* Ground-level sand wind: instanced puffs drifting left→right near the terrain */}
-          <DesertWindStreak started={started} mobileOptimized={mobileOptimized} />
           <SceneReadyBridge />
         </Suspense>
         {mobileOptimized ? (
