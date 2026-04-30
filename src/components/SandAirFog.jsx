@@ -106,6 +106,79 @@ const frag = /* glsl */ `
   }
 `
 
+const fragMobile = /* glsl */ `
+  uniform float uTime;
+  uniform float uDrift;
+  uniform float uOpacity;
+  uniform float uOpacityScale;
+  uniform float uStretch;
+  uniform float uSeed;
+  uniform vec3 uCameraPos;
+  uniform float uFogReveal;
+  uniform float uFlowSign;
+  uniform vec3 uDustColor;
+  uniform float uSkyBandLow;
+  uniform float uSkyBandHigh;
+  uniform float uSkyBandFloor;
+  uniform float uProminent;
+
+  varying vec3 vWorldPos;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+  }
+
+  float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+      u.y
+    );
+  }
+
+  float fbm3(vec2 p) {
+    float v = 0.0;
+    float a = 0.56;
+    float f = 1.0;
+    for (int i = 0; i < 3; i++) {
+      v += a * noise(p * f);
+      f *= 1.95;
+      a *= 0.5;
+    }
+    return v;
+  }
+
+  void main() {
+    vec2 w = vWorldPos.xz * uStretch;
+    float drift = uTime * uDrift + uSeed;
+    float fx = -drift * uFlowSign;
+    vec2 uva = w * vec2(0.92, 0.52) + vec2(fx, drift * 0.12);
+    vec2 uvb = w * vec2(1.28, 0.74) + vec2(fx * 0.78, -drift * 0.08);
+
+    float n1 = fbm3(uva);
+    float n2 = fbm3(uvb + vec2(n1 * 0.34, 0.0));
+    float n = clamp(n1 * 0.58 + n2 * 0.42, 0.0, 1.0);
+
+    float patch = smoothstep(0.13, 0.86, n);
+    float wisp = smoothstep(0.09, 0.79, n2 * n + n * 0.33);
+    float a = patch * wisp * uOpacity * uOpacityScale * uFogReveal;
+
+    float skyBand = smoothstep(uSkyBandLow, uSkyBandHigh, vWorldPos.y - uCameraPos.y);
+    a *= mix(1.0, uSkyBandFloor, skyBand);
+
+    if (uProminent > 0.001) {
+      float visFloor = uProminent * 0.34 * uFogReveal * uOpacityScale;
+      a = max(a, visFloor);
+    }
+
+    if (a < 0.0022) discard;
+    gl_FragColor = vec4(uDustColor, a);
+  }
+`
+
 /** World-space layers (used when cameraAttached=false, with DesertScene offset group). */
 const LAYERS_WORLD = [
   { position: [-12, 2.2, -8], width: 82, height: 32, opacity: 0.88, drift: 0.028, stretch: 0.048, seed: 0.0 },
@@ -147,6 +220,7 @@ function FogBillboard({
   uSkyBandFloor,
   uProminent,
   logShaderReady,
+  fragmentShader,
 }) {
   const meshRef = useRef(null)
 
@@ -214,7 +288,7 @@ function FogBillboard({
         <planeGeometry args={[width, height, 1, 1]} />
         <shaderMaterial
           vertexShader={vert}
-          fragmentShader={frag}
+          fragmentShader={fragmentShader}
           uniforms={uniforms}
           transparent
           depthWrite={false}
@@ -251,6 +325,7 @@ export function SandAirFog({
   skyBandFloor = 0.55,
   prominent = 0.72,
   debug = false,
+  mobileOptimized = false,
 }) {
   const timeUniform = useMemo(() => ({ value: 0 }), [])
   const cameraPos = useMemo(() => ({ value: new THREE.Vector3() }), [])
@@ -266,7 +341,10 @@ export function SandAirFog({
   const debugLogAcc = useRef(0)
   const debugLastStarted = useRef(null)
 
-  const layers = cameraAttached ? LAYERS_CAMERA : LAYERS_WORLD
+  const baseLayers = cameraAttached ? LAYERS_CAMERA : LAYERS_WORLD
+  const layers = mobileOptimized ? baseLayers.slice(0, 4) : baseLayers
+  const fragmentShader = mobileOptimized ? fragMobile : frag
+  const effectiveOpacityScale = mobileOptimized ? opacityScale * 0.86 : opacityScale
 
   useEffect(() => {
     if (!debug) return
@@ -294,7 +372,7 @@ export function SandAirFog({
     cameraPos.value.copy(camera.position)
     uDustColor.value.set(dustColor)
     uFlowSign.value = flowSign
-    uOpacityScale.value = opacityScale
+    uOpacityScale.value = effectiveOpacityScale
     uSkyBandLow.value = skyBandLow
     uSkyBandHigh.value = skyBandHigh
     uSkyBandFloor.value = skyBandFloor
@@ -372,6 +450,7 @@ export function SandAirFog({
           uSkyBandFloor={uSkyBandFloor}
           uProminent={uProminent}
           logShaderReady={debug && i === 0}
+          fragmentShader={fragmentShader}
         />
       ))}
     </>

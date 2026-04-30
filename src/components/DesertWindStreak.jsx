@@ -16,7 +16,8 @@ import * as THREE from 'three'
 import { getRevealT } from '../store/revealProgressStore'
 import { FOG_RAMP_DURATION, FOG_RAMP_START, easeInOutCubic } from '../constants/revealTimeline'
 
-const COUNT = 72
+const COUNT_DESKTOP = 72
+const COUNT_MOBILE = 36
 
 /* ─── Vertex shader ─────────────────────────────────────────────────────────
  * Positions each puff at a_offset + wind drift (left→right along X),
@@ -119,10 +120,50 @@ const frag = /* glsl */ `
   }
 `
 
+const fragMobile = /* glsl */ `
+  varying vec2  vUv;
+  varying float vAlpha;
+
+  uniform float u_time;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+  float noise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+      u.y
+    );
+  }
+  float fbm3(vec2 p) {
+    float v = 0.0, a = 0.54;
+    for (int i = 0; i < 3; i++) { v += a * noise(p); p *= 1.96; a *= 0.5; }
+    return v;
+  }
+
+  void main() {
+    vec2 c = (vUv - 0.5) * vec2(1.45, 1.0);
+    float radial = 1.0 - smoothstep(0.29, 0.52, length(c));
+    vec2 uv1 = vUv * vec2(2.9, 1.95) + vec2(u_time * 0.075,  0.0);
+    vec2 uv2 = vUv * vec2(1.82, 1.35) + vec2(u_time * 0.052, u_time * 0.012);
+    float n1 = fbm3(uv1);
+    float n2 = fbm3(uv2 + n1 * 0.24);
+    float density = smoothstep(0.26, 0.78, n1 * 0.64 + n2 * 0.36);
+    vec3 col = mix(vec3(0.54, 0.43, 0.27), vec3(0.86, 0.74, 0.54), n1);
+    float a = density * radial * 0.8 * vAlpha;
+    if (a < 0.008) discard;
+    gl_FragColor = vec4(col, a);
+  }
+`
+
 /* ─── Component ─────────────────────────────────────────────────────────── */
 
-export function DesertWindStreak({ started = false }) {
+export function DesertWindStreak({ started = false, mobileOptimized = false }) {
   const { geometry, uniforms } = useMemo(() => {
+    const count = mobileOptimized ? COUNT_MOBILE : COUNT_DESKTOP
     /* Base quad — InstancedBufferGeometry lets us draw COUNT copies in one call */
     const base = new THREE.PlaneGeometry(1, 1)
     const geo  = new THREE.InstancedBufferGeometry()
@@ -130,14 +171,14 @@ export function DesertWindStreak({ started = false }) {
     geo.index = base.index
     geo.setAttribute('position', base.getAttribute('position'))
     geo.setAttribute('uv',       base.getAttribute('uv'))
-    geo.instanceCount = COUNT
+    geo.instanceCount = count
 
-    const phases     = new Float32Array(COUNT)
-    const speedMults = new Float32Array(COUNT)
-    const scales     = new Float32Array(COUNT)
-    const offsets    = new Float32Array(COUNT * 3)
+    const phases     = new Float32Array(count)
+    const speedMults = new Float32Array(count)
+    const scales     = new Float32Array(count)
+    const offsets    = new Float32Array(count * 3)
 
-    for (let i = 0; i < COUNT; i++) {
+    for (let i = 0; i < count; i++) {
       phases[i]          = Math.random()
       /* Speed variety 0.72–1.38: prevents all puffs syncing at scene edges */
       speedMults[i]      = 0.72 + Math.random() * 0.66
@@ -168,7 +209,7 @@ export function DesertWindStreak({ started = false }) {
 
     base.dispose()
     return { geometry: geo, uniforms: uni }
-  }, [])
+  }, [mobileOptimized])
 
   /* Dispose geometry on unmount */
   useEffect(() => () => geometry.dispose(), [geometry])
@@ -194,7 +235,7 @@ export function DesertWindStreak({ started = false }) {
     >
       <shaderMaterial
         vertexShader={vert}
-        fragmentShader={frag}
+        fragmentShader={mobileOptimized ? fragMobile : frag}
         uniforms={uniforms}
         transparent
         depthWrite={false}

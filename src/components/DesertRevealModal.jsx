@@ -20,10 +20,21 @@ export default function DesertRevealModal() {
   const [email, setEmail] = useState('')
 
   useEffect(() => {
+    if (!horizonReady) {
+      setVisible(false)
+      setDismissed(false)
+      setSubmitted(false)
+      setSending(false)
+      setError(null)
+      setEmail('')
+      return undefined
+    }
+
     if (horizonReady && !dismissed) {
       const timer = setTimeout(() => setVisible(true), 600)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [horizonReady, dismissed])
 
   useEffect(() => {

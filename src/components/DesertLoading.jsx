@@ -7,7 +7,7 @@ import { useAssetReadyStore } from '../store/useAssetReadyStore'
  * Displays the logo "drawn on paper" via SVG stroke animation,
  * then fades out once sceneAssetsReady becomes true.
  */
-export default function DesertLoading() {
+export default function DesertLoading({ onFadeComplete }) {
   const ready = useAssetReadyStore((s) => s.sceneAssetsReady)
   const [shouldRender, setShouldRender] = useState(true)
   const [isFading, setIsFading] = useState(false)
@@ -15,10 +15,13 @@ export default function DesertLoading() {
   useEffect(() => {
     if (ready) {
       setIsFading(true)
-      const timer = setTimeout(() => setShouldRender(false), 1200)
+      const timer = setTimeout(() => {
+        setShouldRender(false)
+        onFadeComplete?.()
+      }, 1200)
       return () => clearTimeout(timer)
     }
-  }, [ready])
+  }, [ready, onFadeComplete])
 
   if (!shouldRender) return null
 

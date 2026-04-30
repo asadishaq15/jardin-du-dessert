@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { useSoundStore } from '../store/useSoundStore'
+import { useAssetReadyStore } from '../store/useAssetReadyStore'
+import { useRevealUiStore } from '../store/useRevealUiStore'
+import { setRevealT } from '../store/revealProgressStore'
 import DesertScene from './DesertScene'
 import DesertRevealModal from './DesertRevealModal'
 import DesertLoading from './DesertLoading'
@@ -100,14 +103,32 @@ export default function DesertView() {
   const playing = useSoundStore((s) => s.playing)
   const toggle = useSoundStore((s) => s.toggle)
   const setPlaying = useSoundStore((s) => s.setPlaying)
+  const setSceneAssetsReady = useAssetReadyStore((s) => s.setSceneAssetsReady)
+  const setHorizonHotspotVisible = useRevealUiStore((s) => s.setHorizonHotspotVisible)
   const [forceLandscape, setForceLandscape] = useState(false)
   const [dismissedHint, setDismissedHint] = useState(false)
+  const [showLoading, setShowLoading] = useState(true)
+  const [revealStarted, setRevealStarted] = useState(false)
+  const [mobileOptimized, setMobileOptimized] = useState(false)
   const wasLandscapeRef = useRef(false)
+  const loaderFinishedRef = useRef(false)
 
   const handleReturn = () => {
     setPlaying(false)
     setScreen('entry')
   }
+
+  useEffect(() => {
+    // Explicitly reset cross-component reveal/loading state on every desert entry.
+    setSceneAssetsReady(false)
+    setHorizonHotspotVisible(false)
+    setRevealT(0)
+    setShowLoading(true)
+    setRevealStarted(false)
+    setDismissedHint(false)
+    wasLandscapeRef.current = false
+    loaderFinishedRef.current = false
+  }, [setHorizonHotspotVisible, setSceneAssetsReady])
 
   useEffect(() => {
     const hasWindow = typeof window !== 'undefined'
@@ -132,7 +153,8 @@ export default function DesertView() {
     }
 
     const syncFallback = () => {
-      const shouldForceLandscape = isMobileViewport() && isPortrait()
+      const isMobile = isMobileViewport()
+      const shouldForceLandscape = isMobile && isPortrait()
       const isLandscapeNow = !isPortrait()
 
       // Once the user rotates to landscape, allow showing the hint again
@@ -144,6 +166,7 @@ export default function DesertView() {
         wasLandscapeRef.current = false
       }
 
+      setMobileOptimized(isMobile)
       setForceLandscape(shouldForceLandscape)
     }
 
@@ -151,6 +174,7 @@ export default function DesertView() {
 
     const lockLandscape = async () => {
       if (!isMobileViewport()) {
+        setMobileOptimized(false)
         setForceLandscape(false)
         return
       }
@@ -163,6 +187,7 @@ export default function DesertView() {
       try {
         await orientationApi.lock('landscape')
         orientationLocked = true
+        setMobileOptimized(true)
         setForceLandscape(false)
       } catch {
         // Common on iOS Safari and non-fullscreen contexts.
@@ -190,13 +215,24 @@ export default function DesertView() {
     }
   }, [])
 
+  const handleLoadingFadeComplete = useCallback(() => {
+    if (loaderFinishedRef.current) return
+    loaderFinishedRef.current = true
+    setShowLoading(false)
+    setRevealStarted(true)
+  }, [])
+
   const showRotateHint = forceLandscape && !dismissedHint
 
   return (
     <div className="desert-view">
       <div className="desert-view__viewport">
-        <DesertLoading />
-        <DesertScene started={true} scenePointerEvents={true} />
+        {showLoading && <DesertLoading onFadeComplete={handleLoadingFadeComplete} />}
+        <DesertScene
+          started={revealStarted}
+          scenePointerEvents={revealStarted}
+          mobileOptimized={mobileOptimized}
+        />
         <div className="desert-controls">
           <button className="desert-return" onClick={handleReturn}>
             <span aria-hidden="true">←</span>

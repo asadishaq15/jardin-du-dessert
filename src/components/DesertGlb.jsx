@@ -553,7 +553,7 @@ export function HoverMesh({
   })
 }
 
-export function DesertGlb({ showFoliage = true, onHoverSelect, ...props }) {
+export function DesertGlb({ showFoliage = true, onHoverSelect, mobileOptimized = false, ...props }) {
   const group = React.useRef()
   const [hoverUi, setHoverUi] = useState(false)
   useCursor(hoverUi, 'pointer')
@@ -569,8 +569,16 @@ export function DesertGlb({ showFoliage = true, onHoverSelect, ...props }) {
         if (obj.isLight) obj.visible = false
         if (obj.isCamera) obj.visible = false
         if (obj.isMesh || obj.isSkinnedMesh) {
-          obj.castShadow = true
-          obj.receiveShadow = true
+          if (mobileOptimized) {
+            const name = String(obj.name || '').toLowerCase()
+            const importantGround =
+              name.includes('plane') || name.includes('sand') || name.includes('ground')
+            obj.castShadow = false
+            obj.receiveShadow = importantGround
+          } else {
+            obj.castShadow = true
+            obj.receiveShadow = true
+          }
         }
         if (obj.isSkinnedMesh) obj.frustumCulled = false
       })
@@ -578,7 +586,7 @@ export function DesertGlb({ showFoliage = true, onHoverSelect, ...props }) {
     applyShadows()
     const id = requestAnimationFrame(applyShadows)
     return () => cancelAnimationFrame(id)
-  }, [])
+  }, [mobileOptimized])
 
   /** Cutout shadows for foliage (desert bush + saguaro); upgrade Basic materials so sun + shadow map behave correctly */
   useEffect(() => {

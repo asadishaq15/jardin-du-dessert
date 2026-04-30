@@ -136,10 +136,11 @@ function SceneReadyBridge() {
 }
 
 const SHADOW_MAP_FULL = 4096
+const SHADOW_MAP_MOBILE = 1024
 const stripRealmSuffix = (label) => label.replace(/\s*realm\s*$/i, '')
 
 /** Key light from upper-left (+X ray dir) so shadows fall to the right of cacti/bushes, matching the sun disk on the left. */
-function DirectionalSun() {
+function DirectionalSun({ shadowMapSize }) {
   const ref = useRef(null)
 
   useLayoutEffect(() => {
@@ -149,7 +150,7 @@ function DirectionalSun() {
     L.target.position.set(28, -5.5, 9)
     L.target.updateMatrixWorld()
     /* Ensure shadow frustum + bias (kebab props on lights are easy to mis-apply). */
-    L.shadow.mapSize.set(SHADOW_MAP_FULL, SHADOW_MAP_FULL)
+    L.shadow.mapSize.set(shadowMapSize, shadowMapSize)
     L.shadow.bias = -0.00028
     L.shadow.normalBias = 0.006
     const cam = L.shadow.camera
@@ -160,7 +161,7 @@ function DirectionalSun() {
     cam.top = 120
     cam.bottom = -120
     cam.updateProjectionMatrix()
-  })
+  }, [shadowMapSize])
 
   return (
     <directionalLight
@@ -169,7 +170,7 @@ function DirectionalSun() {
       intensity={5.35}
       color="#ffffff"
       castShadow
-      shadow-mapSize={[SHADOW_MAP_FULL, SHADOW_MAP_FULL]}
+      shadow-mapSize={[shadowMapSize, shadowMapSize]}
       shadow-bias={-0.00028}
       shadow-normalBias={0.006}
       shadow-camera-near={0.5}
@@ -200,7 +201,12 @@ function HorizonHotspot({ onHorizonClick, onSelect }) {
   )
 }
 
-const DesertScene = ({ onHorizonClick, started = false, scenePointerEvents = true }) => {
+const DesertScene = ({
+  onHorizonClick,
+  started = false,
+  scenePointerEvents = true,
+  mobileOptimized = false,
+}) => {
   const horizonHotspotVisible = useRevealUiStore((s) => s.horizonHotspotVisible)
   const aboutOpen = useTopNavStore((s) => s.aboutOpen)
   const [activeCatalogTarget, setActiveCatalogTarget] = useState(null)
@@ -216,6 +222,8 @@ const DesertScene = ({ onHorizonClick, started = false, scenePointerEvents = tru
     if (d) d.layers.set(SUN_LAYER)
   }, [])
 
+  const shadowMapSize = mobileOptimized ? SHADOW_MAP_MOBILE : SHADOW_MAP_FULL
+
   return (
     <div className={`desert-scene-shell${aboutOpen ? ' desert-scene-shell--hidden' : ''}`}>
       {horizonHotspotVisible && !aboutOpen && (
@@ -223,6 +231,7 @@ const DesertScene = ({ onHorizonClick, started = false, scenePointerEvents = tru
       )}
       <Canvas
         shadows
+        dpr={mobileOptimized ? [1, 1.25] : [1, 2]}
         style={{
           height: '100dvh',
           minHeight: '100vh',
@@ -234,14 +243,14 @@ const DesertScene = ({ onHorizonClick, started = false, scenePointerEvents = tru
         }}
         camera={{ position: [0, 0, 10], fov: 50 }}
         gl={{
-          antialias: true,
+          antialias: !mobileOptimized,
           toneMapping: THREE.ACESFilmicToneMapping,
           outputColorSpace: THREE.SRGBColorSpace,
         }}
         onCreated={({ gl }) => {
           gl.setClearColor('#050505', 1)
           gl.toneMappingExposure = 1.05
-          gl.shadowMap.type = THREE.PCFSoftShadowMap
+          gl.shadowMap.type = mobileOptimized ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap
         }}
       >
         {/* Solid bg until HDR Environment loads (Suspense) — prevents bright clear flash */}
@@ -259,7 +268,7 @@ const DesertScene = ({ onHorizonClick, started = false, scenePointerEvents = tru
         <ambientLight ref={sunBloomAmbientRef} intensity={0.35} color="#fff4e6" />
         <directionalLight ref={sunBloomKeyRef} position={[-40, 18, 24]} intensity={2.2} color="#fff7ee" />
 
-        <DirectionalSun />
+        <DirectionalSun shadowMapSize={shadowMapSize} />
 
         <Suspense fallback={null}>
           <Environment
@@ -272,6 +281,7 @@ const DesertScene = ({ onHorizonClick, started = false, scenePointerEvents = tru
             receiveShadow
             showFoliage={started}
             onHoverSelect={openCatalogOverlay}
+            mobileOptimized={mobileOptimized}
           />
           {/* COMMENTED OUT: Sun and Moon objects removed from ModelBeta.glb
           <CelestialRevealEnvelope
@@ -325,25 +335,32 @@ const DesertScene = ({ onHorizonClick, started = false, scenePointerEvents = tru
             started={started}
             cameraAttached
             prominent={0.62}
+            mobileOptimized={mobileOptimized}
             debug={import.meta.env.DEV}
           />
           {/* Ground-level sand wind: instanced puffs drifting left→right near the terrain */}
-          <DesertWindStreak started={started} />
+          <DesertWindStreak started={started} mobileOptimized={mobileOptimized} />
           <SceneReadyBridge />
         </Suspense>
-
-        <EffectComposer multisampling={0}>
-          <HueSaturation saturation={-1} />
-          <BrightnessContrast brightness={-0.03} contrast={0.17} />
-          <SelectiveBloom
-            lights={[sunBloomAmbientRef, sunBloomKeyRef]}
-            selectionLayer={SUN_LAYER}
-            luminanceThreshold={0.22}
-            luminanceSmoothing={0.45}
-            intensity={1.35}
-            mipmapBlur
-          />
-        </EffectComposer>
+        {mobileOptimized ? (
+          <EffectComposer multisampling={0}>
+            <HueSaturation saturation={-1} />
+            <BrightnessContrast brightness={-0.03} contrast={0.15} />
+          </EffectComposer>
+        ) : (
+          <EffectComposer multisampling={0}>
+            <HueSaturation saturation={-1} />
+            <BrightnessContrast brightness={-0.03} contrast={0.17} />
+            <SelectiveBloom
+              lights={[sunBloomAmbientRef, sunBloomKeyRef]}
+              selectionLayer={SUN_LAYER}
+              luminanceThreshold={0.22}
+              luminanceSmoothing={0.45}
+              intensity={1.35}
+              mipmapBlur
+            />
+          </EffectComposer>
+        )}
       </Canvas>
       {activeCatalogTarget && !aboutOpen && (
         <CatalogOverlay target={activeCatalogTarget} onClose={closeCatalogOverlay} />
