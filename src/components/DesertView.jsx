@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { useSoundStore } from '../store/useSoundStore'
 import DesertScene from './DesertScene'
@@ -84,7 +84,8 @@ function RotateHint({ onDismiss }) {
             <rect x="183" y="126" width="2.5" height="8" rx="1.25" fill="white" fillOpacity="0.75" />
           </g>
         </svg>
-        <p className="desert-rotate-hint__label">Rotate for best experience</p>
+        <p className="desert-rotate-hint__label">Rotate to landscape for best experience</p>
+        <p className="desert-rotate-hint__sub">Tap to continue in portrait</p>
       </div>
     </div>
   )
@@ -100,7 +101,8 @@ export default function DesertView() {
   const toggle = useSoundStore((s) => s.toggle)
   const setPlaying = useSoundStore((s) => s.setPlaying)
   const [forceLandscape, setForceLandscape] = useState(false)
-  const [showRotateHint, setShowRotateHint] = useState(false)
+  const [dismissedHint, setDismissedHint] = useState(false)
+  const wasLandscapeRef = useRef(false)
 
   const handleReturn = () => {
     setPlaying(false)
@@ -130,7 +132,19 @@ export default function DesertView() {
     }
 
     const syncFallback = () => {
-      setForceLandscape(isMobileViewport() && isPortrait())
+      const shouldForceLandscape = isMobileViewport() && isPortrait()
+      const isLandscapeNow = !isPortrait()
+
+      // Once the user rotates to landscape, allow showing the hint again
+      // if they later return to portrait.
+      if (isLandscapeNow) {
+        wasLandscapeRef.current = true
+      } else if (wasLandscapeRef.current) {
+        setDismissedHint(false)
+        wasLandscapeRef.current = false
+      }
+
+      setForceLandscape(shouldForceLandscape)
     }
 
     let orientationLocked = false
@@ -176,21 +190,7 @@ export default function DesertView() {
     }
   }, [])
 
-  useEffect(() => {
-    if (!forceLandscape) {
-      setShowRotateHint(false)
-      return undefined
-    }
-
-    setShowRotateHint(true)
-    const hideHintTimer = window.setTimeout(() => {
-      setShowRotateHint(false)
-    }, 6500)
-
-    return () => {
-      window.clearTimeout(hideHintTimer)
-    }
-  }, [forceLandscape])
+  const showRotateHint = forceLandscape && !dismissedHint
 
   return (
     <div className="desert-view">
@@ -215,7 +215,7 @@ export default function DesertView() {
         </div>
       </div>
       {/* RotateHint lives outside the rotated viewport so it renders right-side-up in portrait */}
-      {showRotateHint && <RotateHint onDismiss={() => setShowRotateHint(false)} />}
+      {showRotateHint && <RotateHint onDismiss={() => setDismissedHint(true)} />}
       <DesertRevealModal />
     </div>
   )
