@@ -706,68 +706,82 @@ body {
 }
 .desert-controls .sound-btn .sound-btn__label { color: #555; }
 
+/* ————— DESERT ROTATE HINT (mobile portrait overlay) ————— */
 .desert-rotate-hint {
   position: absolute;
-  left: 50%;
-  bottom: max(18px, env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
-  z-index: 95;
-  display: inline-flex;
+  inset: 0;
+  z-index: 96;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.5);
-  color: #f5f5f5;
+  justify-content: center;
+  background: rgba(5, 5, 5, 0.82);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  cursor: pointer;
+  /* Fade in on mount, fade out at ~5.9 s so React unmounts after transition */
+  animation: drh-overlay-in 0.45s ease forwards, drh-overlay-out 0.6s ease 5.8s forwards;
+}
+
+.desert-rotate-hint__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  pointer-events: none;
+}
+
+.desert-rotate-hint__svg {
+  width: 55vmin;
+  max-width: 280px;
+  min-width: 180px;
+  height: auto;
+  overflow: visible;
+}
+
+.desert-rotate-hint__label {
+  margin: 0;
   font-family: var(--sans);
   font-size: 10px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  pointer-events: none;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  color: rgba(255, 255, 255, 0.6);
+  opacity: 0;
+  animation: drh-fadein 0.5s ease 2.1s forwards;
 }
 
-.desert-rotate-hint p {
-  margin: 0;
-  white-space: nowrap;
+/* ── SVG element animations ── */
+.drh-circle {
+  animation: drh-draw 1.2s ease 0.1s forwards;
 }
 
-.desert-rotate-hint__icon {
-  width: 14px;
-  height: 22px;
-  border: 1.5px solid currentColor;
-  border-radius: 3px;
-  position: relative;
-  animation: desertRotatePhone 1.2s ease-in-out infinite;
+.drh-accent {
+  opacity: 0;
+  animation: drh-fadein 0.4s ease 0.7s forwards;
 }
 
-.desert-rotate-hint__icon::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 2px;
-  width: 3px;
-  height: 1.5px;
-  transform: translateX(-50%);
-  border-radius: 99px;
-  background: currentColor;
-  opacity: 0.8;
+.drh-portrait {
+  opacity: 0;
+  animation: drh-fadein 0.4s ease 0.9s forwards;
 }
 
-@keyframes desertRotatePhone {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  35% {
-    transform: rotate(90deg);
-  }
-  65% {
-    transform: rotate(90deg);
-  }
+.drh-arrow {
+  animation: drh-draw 0.75s cubic-bezier(0.4, 0, 0.2, 1) 1.3s forwards;
 }
+
+.drh-arrowhead {
+  opacity: 0;
+  animation: drh-fadein 0.28s ease 1.95s forwards;
+}
+
+.drh-landscape {
+  opacity: 0;
+  animation: drh-fadein 0.4s ease 2.0s forwards;
+}
+
+@keyframes drh-draw        { to { stroke-dashoffset: 0 } }
+@keyframes drh-fadein      { to { opacity: 1 } }
+@keyframes drh-overlay-in  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes drh-overlay-out { to { opacity: 0; pointer-events: none } }
 
 @media (max-width: 900px) and (orientation: portrait) {
   .desert-view--force-landscape .desert-view__viewport {
@@ -786,24 +800,6 @@ body {
   .desert-view--force-landscape .desert-controls .sound-btn {
     top: max(16px, env(safe-area-inset-top, 0px));
     right: max(20px, env(safe-area-inset-right, 0px));
-  }
-
-  .desert-view--force-landscape .desert-rotate-hint {
-    bottom: max(20px, env(safe-area-inset-bottom, 0px));
-  }
-}
-
-@media (max-width: 600px) {
-  .desert-rotate-hint {
-    max-width: calc(100vw - 24px);
-    padding: 10px 12px;
-    gap: 8px;
-    letter-spacing: 0.13em;
-    font-size: 9px;
-  }
-
-  .desert-rotate-hint p {
-    white-space: normal;
   }
 }
 
