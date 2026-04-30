@@ -669,6 +669,12 @@ body {
   z-index: 90;
   background: #050505;
   animation: fadeIn .5s var(--ease);
+  overflow: hidden;
+}
+.desert-view__viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 .desert-controls { position: absolute; inset: 0; pointer-events: none; z-index: 91; }
 .desert-controls > * { pointer-events: auto; }
@@ -699,6 +705,26 @@ body {
   padding: 0;
 }
 .desert-controls .sound-btn .sound-btn__label { color: #555; }
+
+@media (max-width: 900px) and (orientation: portrait) {
+  .desert-view--force-landscape .desert-view__viewport {
+    width: 100dvh;
+    width: 100vh;
+    height: 100vw;
+    transform-origin: top left;
+    transform: rotate(90deg) translateY(-100%);
+  }
+
+  .desert-view--force-landscape .desert-return {
+    top: max(16px, env(safe-area-inset-top, 0px));
+    left: max(20px, env(safe-area-inset-left, 0px));
+  }
+
+  .desert-view--force-landscape .desert-controls .sound-btn {
+    top: max(16px, env(safe-area-inset-top, 0px));
+    right: max(20px, env(safe-area-inset-right, 0px));
+  }
+}
 
 /* Sound control bars */
 .sound-bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }

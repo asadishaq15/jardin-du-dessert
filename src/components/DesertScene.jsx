@@ -136,6 +136,7 @@ function SceneReadyBridge() {
 }
 
 const SHADOW_MAP_FULL = 4096
+const stripRealmSuffix = (label) => label.replace(/\s*realm\s*$/i, '')
 
 /** Key light from upper-left (+X ray dir) so shadows fall to the right of cacti/bushes, matching the sun disk on the left. */
 function DirectionalSun() {
@@ -289,31 +290,31 @@ const DesertScene = ({ onHorizonClick, started = false, scenePointerEvents = tru
           {/* All 5 realm labels — camera-attached, each at a unique viewport position */}
           <RevealLabel3D
             phase={REVEAL_PHASES.mind}
-            text={REVEAL_PHASES.mind.label}
+            text={stripRealmSuffix(REVEAL_PHASES.mind.label)}
             cameraOffset={[-2.8, 1.2, -12]}
             fontSize={0.62}
           />
           <RevealLabel3D
             phase={REVEAL_PHASES.body}
-            text={REVEAL_PHASES.body.label}
+            text={stripRealmSuffix(REVEAL_PHASES.body.label)}
             cameraOffset={[2.6, -0.6, -12]}
             fontSize={0.62}
           />
           <RevealLabel3D
             phase={REVEAL_PHASES.heart}
-            text={REVEAL_PHASES.heart.label}
+            text={stripRealmSuffix(REVEAL_PHASES.heart.label)}
             cameraOffset={[0, 0.3, -12]}
             fontSize={0.62}
           />
           <RevealLabel3D
             phase={REVEAL_PHASES.spirit}
-            text={REVEAL_PHASES.spirit.label}
+            text={stripRealmSuffix(REVEAL_PHASES.spirit.label)}
             cameraOffset={[3.0, 1.4, -12]}
             fontSize={0.62}
           />
           <RevealLabel3D
             phase={REVEAL_PHASES.soul}
-            text={REVEAL_PHASES.soul.label}
+            text={stripRealmSuffix(REVEAL_PHASES.soul.label)}
             cameraOffset={[-2.4, -0.4, -12]}
             fontSize={0.62}
           />
