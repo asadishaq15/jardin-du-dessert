@@ -29,6 +29,8 @@ const MAX_DAMP_DT = 0.08
 const PARALLAX_MAX_X = 0.34
 const PARALLAX_MAX_Y = 0.16
 const PARALLAX_LAMBDA = 7.5
+const INITIAL_DOWN_TILT_DEG = 5.5
+const INITIAL_DOWN_TILT_PATH_FADE_END = 0.22
 /** Device tilt → same axes as cursor parallax (landscape phone). */
 const TILT_GAMMA_SCALE = 42
 const TILT_BETA_CENTER = 44
@@ -178,6 +180,8 @@ export function DesertGlbNew({ mobileOptimized = false }) {
   const tmpScl = useRef(new THREE.Vector3())
   const tmpRight = useRef(new THREE.Vector3())
   const tmpUp = useRef(new THREE.Vector3())
+  const tmpTiltQuat = useRef(new THREE.Quaternion())
+  const tmpTiltAxis = useRef(new THREE.Vector3())
   const pointerTarget = useRef({ x: 0, y: 0 })
   const tiltTarget = useRef({ x: 0, y: 0 })
   const swaySmoothed = useRef({ x: 0, y: 0 })
@@ -398,6 +402,15 @@ export function DesertGlbNew({ mobileOptimized = false }) {
     driver.matrixWorld.decompose(tmpPos.current, tmpQuat.current, tmpScl.current)
     camera.position.copy(tmpPos.current)
     camera.quaternion.copy(tmpQuat.current)
+
+    /* Slight initial downward bias, then fade out as path progresses. */
+    const tiltMix = 1 - THREE.MathUtils.smoothstep(pathProg, 0, INITIAL_DOWN_TILT_PATH_FADE_END)
+    if (tiltMix > 1e-4) {
+      const downTiltRad = THREE.MathUtils.degToRad(INITIAL_DOWN_TILT_DEG * tiltMix)
+      tmpTiltAxis.current.set(1, 0, 0).applyQuaternion(camera.quaternion).normalize()
+      tmpTiltQuat.current.setFromAxisAngle(tmpTiltAxis.current, -downTiltRad)
+      camera.quaternion.premultiply(tmpTiltQuat.current)
+    }
 
     /* Subtle cursor parallax in camera-local right/up directions. */
     tmpRight.current.set(1, 0, 0).applyQuaternion(tmpQuat.current)
