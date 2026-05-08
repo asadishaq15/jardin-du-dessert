@@ -1335,3 +1335,13 @@
     padding: 14px 16px;
   }
 }
+
+/* Phone landscape: short vertical space — ease outer + panel padding */
+@media (orientation: landscape) and (max-height: 500px) {
+  .desert-reveal-overlay {
+    padding: 0.65rem 1rem;
+  }
+  .desert-reveal-panel {
+    padding: 1.1rem 1.25rem;
+  }
+}

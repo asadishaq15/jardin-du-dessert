@@ -35,7 +35,7 @@ export default function ScreenStates() {
       <div className="states-header">
         <div className="micro">CATALOG</div>
         <h2>State Catalog</h2>
-        <div className="lede">1 State · 1 Property · 1 Scent · 1 Ritual</div>
+        <div className="lede">A Brand as a Living Organism</div>
         <div className="states-filter">
           {filterButtons.map((realm) => (
             <button

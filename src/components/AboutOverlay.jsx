@@ -92,7 +92,7 @@ function AboutOverlay() {
               Each state is assigned to one property only.
             </p>
             <p className="about-overlay__paragraph">
-              1 Fragrance &middot; 1 Property &middot; 1 State.
+              1 STATE &middot; 1 PROPERTY &middot; 1 SCENT &middot; 1 RITUAL
             </p>
           </div>
           <p className="about-overlay__paragraph">

@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import './App.css'
 import './index.css'
 import FrameTop from './components/FrameTop'
@@ -12,19 +13,18 @@ import ScreenSubmitted from './components/ScreenSubmitted'
 import StateModal from './components/StateModal'
 import AboutModalNew from './components/AboutModalNew'
 import DesertView from './components/DesertView'
+import DesertViewNew from './components/DesertViewNew'
 import { useAppStore } from './store/useAppStore'
 import { useSoundStore } from './store/useSoundStore'
 import { useDesertAudio } from './hooks/useDesertAudio'
 
-function App() {
+/** Main shell: zustand screens + modals (everything except `/desert-test` route). */
+function MainApp() {
   const screen = useAppStore((s) => s.screen)
   const closeStateModal = useAppStore((s) => s.closeStateModal)
   const setAboutOpen = useAppStore((s) => s.setAboutOpen)
   const aboutOpen = useAppStore((s) => s.aboutOpen)
   const setPlaying = useSoundStore((s) => s.setPlaying)
-
-  // Mount the audio element for the lifetime of the app
-  useDesertAudio()
 
   // Scroll to top on screen change
   useEffect(() => {
@@ -53,7 +53,6 @@ function App() {
     return () => document.removeEventListener('keydown', handleKey)
   }, [screen, closeStateModal, setAboutOpen, setPlaying])
 
-  // Desert view is a fullscreen overlay — render separately
   if (screen === 'desert') {
     return <DesertView />
   }
@@ -74,6 +73,18 @@ function App() {
       <StateModal />
       <AboutModalNew />
     </div>
+  )
+}
+
+function App() {
+  // Mount the audio element for the lifetime of the app
+  useDesertAudio()
+
+  return (
+    <Routes>
+      <Route path="/desert-test" element={<DesertViewNew />} />
+      <Route path="*" element={<MainApp />} />
+    </Routes>
   )
 }
 

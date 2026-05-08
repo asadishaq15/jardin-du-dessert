@@ -32,7 +32,7 @@ export default function DesertLoading({ onFadeComplete }) {
           {/* <LogoDrawAnimation /> */}
           <img src="/Logo1-new.png" alt="Jardin du Désert" className="loading-symbol" />
         </div>
-        <div className="desert-loading__text">Entering the Desert</div>
+        <div className="desert-loading__text">You are entering silence.</div>
         <div className="desert-loading__bar-container">
           <div className={`desert-loading__bar ${ready ? 'is-full' : ''}`} />
         </div>

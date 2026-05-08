@@ -6,6 +6,18 @@ import { getRevealT } from '../store/revealProgressStore'
 import { useTopNavStore } from '../store/useTopNavStore'
 import { phaseLabelOpacity } from '../constants/revealTimeline'
 
+/**
+ * Scale grows linearly from 1× to MAX_SCALE across the full phase window,
+ * starting the moment the text fades in. This keeps every scroll tick
+ * visually affecting the text size for the entire time it's on screen.
+ */
+const MAX_SCALE = 3.2
+function phaseLabelScale(t, phase) {
+  const span = phase.end - phase.start
+  const u = Math.max(0, Math.min(1, (t - phase.start) / span))
+  return 1 + u * (MAX_SCALE - 1)
+}
+
 /** Requiem OTF from public/ — Drei `<Text>` (troika) loads via fetch. */
 const REQUIEM_FONT = '/Requiem%20Fine-HTF-%20Roman/Requiem%20Fine-HTF-%20Roman.otf'
 
@@ -77,11 +89,17 @@ export function RevealLabel3D({
       g.quaternion.identity()
     }
 
-    const opacity = phaseLabelOpacity(getRevealT(), phase)
+    const t = getRevealT()
+    const opacity = phaseLabelOpacity(t, phase)
     /* Toggle visibility off when fully transparent so troika does not waste raster time. */
     g.visible = opacity > 0.001
     if (!g.visible) return
-    /* `fillOpacity` / `outlineOpacity` are troika's per-glyph alpha — material.opacity is left at 1. */
+
+    /* Scale grows during the fade-out window, giving the "zoom past camera" feel. */
+    const s = phaseLabelScale(t, phase)
+    g.scale.setScalar(s)
+
+    /* Fill + glow outline both track opacity so they fade together. */
     t3.fillOpacity = opacity
     t3.outlineOpacity = 0
   })
@@ -100,13 +118,15 @@ export function RevealLabel3D({
           color={color}
           anchorX="center"
           anchorY="middle"
-          outlineColor={outlineColor}
-          outlineWidth={outlineWidth}
+          outlineColor="transparent"
+          outlineWidth={0}
           outlineBlur={0}
           letterSpacing={0.04}
           renderOrder={LABEL_RENDER_ORDER}
           material-toneMapped={false}
           material-transparent
+          material-blending={THREE.AdditiveBlending}
+          material-opacity={1}
           material-depthWrite={false}
           material-depthTest={false}
         >

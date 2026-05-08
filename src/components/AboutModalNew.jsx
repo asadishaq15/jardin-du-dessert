@@ -20,7 +20,7 @@ export default function AboutModal() {
           <p className="dim">
             Each state is assigned to one property only.
             <br />
-            1 Fragrance · 1 Property · 1 State.
+            1 STATE · 1 PROPERTY · 1 SCENT · 1 RITUAL
           </p>
           <p>Properties don't design spaces. They operate states.</p>
         </div>

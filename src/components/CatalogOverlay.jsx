@@ -67,7 +67,7 @@ function CatalogOverlay({ target, onClose }) {
         <header className="catalog-overlay__header">
           <p className="catalog-overlay__kicker">CATALOG</p>
           <h2 className="catalog-overlay__title">State Catalog</h2>
-          <p className="catalog-overlay__meta">1 STATE · 1 PROPERTY · 1 SCENT · 1 RITUAL</p>
+          <p className="catalog-overlay__meta">A Brand as a Living Organism</p>
           <nav className="catalog-overlay__filters" aria-label="State filters">
             {CATALOG_FILTERS.map((filter) => (
               <button
