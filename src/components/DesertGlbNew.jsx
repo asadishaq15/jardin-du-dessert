@@ -7,7 +7,7 @@ import { setRevealT } from '../store/revealProgressStore'
 import { useRevealUiStore } from '../store/useRevealUiStore'
 
 const DESERT_GLB_URL = '/3d/desert.glb'
-const CAMERA_GLB_URL = '/3d/camera.glb'
+const CAMERA_GLB_URL = '/3d/camera(2).glb'
 const SAND_EXR_URL = '/3d/sand-dunes-desert-aerial_2K_835f4211-f6ea-421c-ba13-a4106bfe1c78.exr'
 
 /** Camera rig names from the shared Blender outliner screenshot. */
