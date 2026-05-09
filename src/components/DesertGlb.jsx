@@ -553,7 +553,12 @@ export function HoverMesh({
   })
 }
 
-export function DesertGlb({ showFoliage = true, onHoverSelect, mobileOptimized = false, ...props }) {
+export function DesertGlb({
+  showFoliage = true,
+  onHoverSelect,
+  shadowCastMode = 'full',
+  ...props
+}) {
   const group = React.useRef()
   const [hoverUi, setHoverUi] = useState(false)
   useCursor(hoverUi, 'pointer')
@@ -569,12 +574,20 @@ export function DesertGlb({ showFoliage = true, onHoverSelect, mobileOptimized =
         if (obj.isLight) obj.visible = false
         if (obj.isCamera) obj.visible = false
         if (obj.isMesh || obj.isSkinnedMesh) {
-          if (mobileOptimized) {
-            const name = String(obj.name || '').toLowerCase()
-            const importantGround =
-              name.includes('plane') || name.includes('sand') || name.includes('ground')
+          const name = String(obj.name || '').toLowerCase()
+          const groundLike =
+            name.includes('plane') || name.includes('sand') || name.includes('ground')
+          const heroCast =
+            /cactus|bush|tree|dune|rock|foliage|leaf|saguaro|palm|vegetation|desert|oasis|stone|conifer|tripo|sketchfab/i.test(
+              name,
+            )
+
+          if (shadowCastMode === 'minimal') {
             obj.castShadow = false
-            obj.receiveShadow = importantGround
+            obj.receiveShadow = groundLike
+          } else if (shadowCastMode === 'balanced') {
+            obj.castShadow = groundLike || heroCast
+            obj.receiveShadow = true
           } else {
             obj.castShadow = true
             obj.receiveShadow = true
@@ -586,7 +599,7 @@ export function DesertGlb({ showFoliage = true, onHoverSelect, mobileOptimized =
     applyShadows()
     const id = requestAnimationFrame(applyShadows)
     return () => cancelAnimationFrame(id)
-  }, [mobileOptimized])
+  }, [shadowCastMode])
 
   /** Cutout shadows for foliage (desert bush + saguaro); upgrade Basic materials so sun + shadow map behave correctly */
   useEffect(() => {

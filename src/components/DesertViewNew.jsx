@@ -1,11 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
+import { useSoundStore } from '../store/useSoundStore'
 import { useAssetReadyStore } from '../store/useAssetReadyStore'
 import DesertSceneNew from './DesertSceneNew'
 import DesertLoading from './DesertLoading'
 import DesertRevealModal from './DesertRevealModal'
 import { DesertRotateHint } from './DesertRotateHint'
+import DesertScrollIndicator from './DesertScrollIndicator'
+import { useDesertPathProgressStore } from '../store/useDesertPathProgressStore'
+import { resolveDesertQualityTier } from '../utils/desertQualityTier'
+import { useDesertAdaptiveQuality } from '../hooks/useDesertAdaptiveQuality'
+
+/** Animated sound wave bars — same as DesertView */
+function SoundWave({ playing }) {
+  return (
+    <span className="sound-wave" aria-hidden="true">
+      <span className={`sound-wave__bar${playing ? ' is-playing' : ''}`} />
+      <span className={`sound-wave__bar${playing ? ' is-playing' : ''}`} />
+      <span className={`sound-wave__bar${playing ? ' is-playing' : ''}`} />
+      <span className={`sound-wave__bar${playing ? ' is-playing' : ''}`} />
+    </span>
+  )
+}
 
 /**
  * Fullscreen test view — loading overlay, scene, landscape hint on mobile portrait (same as main desert).
@@ -13,11 +30,16 @@ import { DesertRotateHint } from './DesertRotateHint'
 export default function DesertViewNew() {
   const navigate = useNavigate()
   const setScreen = useAppStore((s) => s.setScreen)
+  const playing = useSoundStore((s) => s.playing)
+  const toggle = useSoundStore((s) => s.toggle)
+  const setPlaying = useSoundStore((s) => s.setPlaying)
   const setSceneAssetsReady = useAssetReadyStore((s) => s.setSceneAssetsReady)
+  const sceneAssetsReady = useAssetReadyStore((s) => s.sceneAssetsReady)
+  const [qualityTier, setQualityTier] = useState(() => resolveDesertQualityTier())
   const [showLoading, setShowLoading] = useState(true)
   const [forceLandscape, setForceLandscape] = useState(false)
   const [dismissedHint, setDismissedHint] = useState(false)
-  const [mobileOptimized, setMobileOptimized] = useState(false)
+  const [touchParallax, setTouchParallax] = useState(false)
   const wasLandscapeRef = useRef(false)
   const loaderFinishedRef = useRef(false)
 
@@ -27,7 +49,19 @@ export default function DesertViewNew() {
     loaderFinishedRef.current = false
     setDismissedHint(false)
     wasLandscapeRef.current = false
+    setQualityTier(resolveDesertQualityTier())
+    useDesertPathProgressStore.getState().resetDesertPathProgress()
   }, [setSceneAssetsReady])
+
+  useDesertAdaptiveQuality({
+    assetsReady: sceneAssetsReady,
+    setTier: setQualityTier,
+  })
+
+  // Same as FrameTop → DESERT: start ambient as soon as this view is shown.
+  useEffect(() => {
+    setPlaying(true)
+  }, [setPlaying])
 
   useEffect(() => {
     const hasWindow = typeof window !== 'undefined'
@@ -63,7 +97,7 @@ export default function DesertViewNew() {
         wasLandscapeRef.current = false
       }
 
-      setMobileOptimized(isMobile)
+      setTouchParallax(isMobile)
       setForceLandscape(shouldForceLandscape)
     }
 
@@ -71,7 +105,7 @@ export default function DesertViewNew() {
 
     const lockLandscape = async () => {
       if (!isMobileViewport()) {
-        setMobileOptimized(false)
+        setTouchParallax(false)
         setForceLandscape(false)
         return
       }
@@ -84,7 +118,7 @@ export default function DesertViewNew() {
       try {
         await orientationApi.lock('landscape')
         orientationLocked = true
-        setMobileOptimized(true)
+        setTouchParallax(true)
         setForceLandscape(false)
       } catch {
         syncFallback()
@@ -118,9 +152,10 @@ export default function DesertViewNew() {
   }, [])
 
   const goHome = useCallback(() => {
+    setPlaying(false)
     setScreen('entry')
     navigate('/', { replace: true })
-  }, [navigate, setScreen])
+  }, [navigate, setPlaying, setScreen])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -136,11 +171,23 @@ export default function DesertViewNew() {
     <div className="desert-view">
       <div className="desert-view__viewport">
         {showLoading && <DesertLoading onFadeComplete={handleLoadingFadeComplete} />}
-        <DesertSceneNew mobileOptimized={mobileOptimized} />
+        <DesertSceneNew qualityTier={qualityTier} touchParallax={touchParallax} />
+        <DesertScrollIndicator showLoading={showLoading} />
         <div className="desert-controls">
           <button type="button" className="desert-return" onClick={goHome}>
             <span aria-hidden="true">←</span>
             <span>CLICK TO RETURN</span>
+          </button>
+
+          <button
+            type="button"
+            className={`sound-btn${playing ? ' is-playing' : ''}`}
+            onClick={toggle}
+            aria-label="Toggle sound"
+            title={playing ? 'Pause' : 'Play ambient'}
+          >
+            <SoundWave playing={playing} />
+            <span className="sound-btn__label">SOUND</span>
           </button>
         </div>
       </div>

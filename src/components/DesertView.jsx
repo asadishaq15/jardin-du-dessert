@@ -8,6 +8,8 @@ import DesertScene from './DesertScene'
 import DesertRevealModal from './DesertRevealModal'
 import DesertLoading from './DesertLoading'
 import { DesertRotateHint } from './DesertRotateHint'
+import { resolveDesertQualityTier } from '../utils/desertQualityTier'
+import { useDesertAdaptiveQuality } from '../hooks/useDesertAdaptiveQuality'
 
 /** Animated sound wave bars — shared with FrameTop */
 function SoundWave({ playing }) {
@@ -32,11 +34,13 @@ export default function DesertView() {
   const setPlaying = useSoundStore((s) => s.setPlaying)
   const setSceneAssetsReady = useAssetReadyStore((s) => s.setSceneAssetsReady)
   const setHorizonHotspotVisible = useRevealUiStore((s) => s.setHorizonHotspotVisible)
+  const sceneAssetsReady = useAssetReadyStore((s) => s.sceneAssetsReady)
+  const [qualityTier, setQualityTier] = useState(() => resolveDesertQualityTier())
   const [forceLandscape, setForceLandscape] = useState(false)
   const [dismissedHint, setDismissedHint] = useState(false)
   const [showLoading, setShowLoading] = useState(true)
   const [revealStarted, setRevealStarted] = useState(false)
-  const [mobileOptimized, setMobileOptimized] = useState(false)
+  const [touchParallax, setTouchParallax] = useState(false)
   const wasLandscapeRef = useRef(false)
   const loaderFinishedRef = useRef(false)
 
@@ -53,9 +57,15 @@ export default function DesertView() {
     setShowLoading(true)
     setRevealStarted(false)
     setDismissedHint(false)
+    setQualityTier(resolveDesertQualityTier())
     wasLandscapeRef.current = false
     loaderFinishedRef.current = false
   }, [setHorizonHotspotVisible, setSceneAssetsReady])
+
+  useDesertAdaptiveQuality({
+    assetsReady: sceneAssetsReady,
+    setTier: setQualityTier,
+  })
 
   useEffect(() => {
     const hasWindow = typeof window !== 'undefined'
@@ -93,7 +103,7 @@ export default function DesertView() {
         wasLandscapeRef.current = false
       }
 
-      setMobileOptimized(isMobile)
+      setTouchParallax(isMobile)
       setForceLandscape(shouldForceLandscape)
     }
 
@@ -101,7 +111,7 @@ export default function DesertView() {
 
     const lockLandscape = async () => {
       if (!isMobileViewport()) {
-        setMobileOptimized(false)
+        setTouchParallax(false)
         setForceLandscape(false)
         return
       }
@@ -114,7 +124,7 @@ export default function DesertView() {
       try {
         await orientationApi.lock('landscape')
         orientationLocked = true
-        setMobileOptimized(true)
+        setTouchParallax(true)
         setForceLandscape(false)
       } catch {
         // Common on iOS Safari and non-fullscreen contexts.
@@ -158,7 +168,7 @@ export default function DesertView() {
         <DesertScene
           started={revealStarted}
           scenePointerEvents={revealStarted}
-          mobileOptimized={mobileOptimized}
+          qualityTier={qualityTier}
         />
         <div className="desert-controls">
           <button className="desert-return" onClick={handleReturn}>

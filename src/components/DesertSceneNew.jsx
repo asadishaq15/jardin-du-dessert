@@ -1,7 +1,11 @@
 import { Canvas } from '@react-three/fiber'
-import { Suspense, useEffect, useLayoutEffect, useRef } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Environment } from '@react-three/drei'
 import * as THREE from 'three'
+import {
+  DESERT_QUALITY_TIER,
+  getDesertQualityRendererSettings,
+} from '../utils/desertQualityTier'
 import {
   EffectComposer,
   HueSaturation,
@@ -12,7 +16,7 @@ import {
 import { useAssetReadyStore } from '../store/useAssetReadyStore'
 import { DesertGlbNew } from './DesertGlbNew'
 import { RevealLabel3D } from './RevealLabel3D'
-import { REVEAL_PHASES } from '../constants/revealTimeline'
+import { DESERT_NEW_PATH_PHASES } from '../constants/revealTimeline'
 
 function SceneReadyBridge() {
   const setSceneAssetsReady = useAssetReadyStore((s) => s.setSceneAssetsReady)
@@ -23,16 +27,12 @@ function SceneReadyBridge() {
   return null
 }
 
-const SHADOW_MAP_FULL = 4096
-const SHADOW_MAP_MOBILE = 1024
-
 /**
  * Strong directional sun from upper-right → casts deep shadows into dune hollows.
  * This is the primary source of shape/depth — all fills stay intentionally low.
  */
-function DirectionalSun({ mobileOptimized }) {
+function DirectionalSun({ shadowMapSize, normalBias }) {
   const ref = useRef(null)
-  const shadowMapSize = mobileOptimized ? SHADOW_MAP_MOBILE : SHADOW_MAP_FULL
 
   useLayoutEffect(() => {
     const L = ref.current
@@ -41,7 +41,7 @@ function DirectionalSun({ mobileOptimized }) {
     L.target.updateMatrixWorld()
     L.shadow.mapSize.set(shadowMapSize, shadowMapSize)
     L.shadow.bias = -0.0002
-    L.shadow.normalBias = mobileOptimized ? 0.006 : 0.004
+    L.shadow.normalBias = normalBias
     const cam = L.shadow.camera
     cam.near = 1
     cam.far = 600
@@ -50,7 +50,7 @@ function DirectionalSun({ mobileOptimized }) {
     cam.top = 120
     cam.bottom = -120
     cam.updateProjectionMatrix()
-  }, [mobileOptimized, shadowMapSize])
+  }, [shadowMapSize, normalBias])
 
   return (
     <directionalLight
@@ -62,7 +62,7 @@ function DirectionalSun({ mobileOptimized }) {
       castShadow
       shadow-mapSize={[shadowMapSize, shadowMapSize]}
       shadow-bias={-0.0002}
-      shadow-normalBias={mobileOptimized ? 0.006 : 0.004}
+      shadow-normalBias={normalBias}
       shadow-camera-near={1}
       shadow-camera-far={600}
       shadow-camera-left={-120}
@@ -75,12 +75,19 @@ function DirectionalSun({ mobileOptimized }) {
 
 const stripRealmSuffix = (label) => label.replace(/\s*realm\s*$/i, '')
 
-export default function DesertSceneNew({ mobileOptimized = false }) {
+export default function DesertSceneNew({
+  qualityTier = DESERT_QUALITY_TIER.HIGH,
+  touchParallax = false,
+}) {
+  const settings = useMemo(() => getDesertQualityRendererSettings(qualityTier), [qualityTier])
+  const normalBias = settings.directionalNormalBiasTight ? 0.004 : 0.006
+
   return (
     <div className="desert-scene-shell">
       <Canvas
+        key={qualityTier}
         shadows
-        dpr={mobileOptimized ? [1, 1.25] : [1, 2]}
+        dpr={settings.dpr}
         style={{
           height: '100dvh',
           minHeight: '100vh',
@@ -91,14 +98,16 @@ export default function DesertSceneNew({ mobileOptimized = false }) {
         }}
         camera={{ position: [0, 0, 10], fov: 50 }}
         gl={{
-          antialias: !mobileOptimized,
+          antialias: settings.antialias,
           toneMapping: THREE.ACESFilmicToneMapping,
           outputColorSpace: THREE.SRGBColorSpace,
         }}
         onCreated={({ gl }) => {
           gl.setClearColor('#a8b4c0', 1)
           gl.toneMappingExposure = 0.62
-          gl.shadowMap.type = mobileOptimized ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap
+          gl.shadowMap.type = settings.softShadow
+            ? THREE.PCFSoftShadowMap
+            : THREE.PCFShadowMap
         }}
       >
         {/* Fallback colour while HDR loads */}
@@ -107,7 +116,7 @@ export default function DesertSceneNew({ mobileOptimized = false }) {
         {/* Controlled daytime fill — keep sun as dominant light source */}
         <ambientLight intensity={0.075} color="#d4d8e0" />
         <hemisphereLight color="#dde4f0" groundColor="#a89070" intensity={0.095} />
-        <DirectionalSun mobileOptimized={mobileOptimized} />
+        <DirectionalSun shadowMapSize={settings.shadowMapSize} normalBias={normalBias} />
 
         <Suspense fallback={null}>
           {/*
@@ -121,35 +130,36 @@ export default function DesertSceneNew({ mobileOptimized = false }) {
             backgroundIntensity={2.1}
             environmentIntensity={0.2}
           />
-          <DesertGlbNew mobileOptimized={mobileOptimized} />
+          <DesertGlbNew touchParallax={touchParallax} />
 
+          {/* Path windows stay Mind→Body→Heart→Spirit→Soul; copy cross-wire keeps Spirit text last (Soul window). */}
           <RevealLabel3D
-            phase={REVEAL_PHASES.mind}
-            text={stripRealmSuffix(REVEAL_PHASES.body.label)}
+            phase={DESERT_NEW_PATH_PHASES.mind}
+            text={stripRealmSuffix(DESERT_NEW_PATH_PHASES.body.label)}
             cameraOffset={[0, 0, -12]}
             fontSize={0.62}
           />
           <RevealLabel3D
-            phase={REVEAL_PHASES.body}
-            text={stripRealmSuffix(REVEAL_PHASES.mind.label)}
+            phase={DESERT_NEW_PATH_PHASES.body}
+            text={stripRealmSuffix(DESERT_NEW_PATH_PHASES.mind.label)}
             cameraOffset={[0, 0, -12]}
             fontSize={0.62}
           />
           <RevealLabel3D
-            phase={REVEAL_PHASES.heart}
-            text={stripRealmSuffix(REVEAL_PHASES.heart.label)}
+            phase={DESERT_NEW_PATH_PHASES.heart}
+            text={stripRealmSuffix(DESERT_NEW_PATH_PHASES.heart.label)}
             cameraOffset={[0, 0, -12]}
             fontSize={0.62}
           />
           <RevealLabel3D
-            phase={REVEAL_PHASES.spirit}
-            text={stripRealmSuffix(REVEAL_PHASES.soul.label)}
+            phase={DESERT_NEW_PATH_PHASES.spirit}
+            text={stripRealmSuffix(DESERT_NEW_PATH_PHASES.soul.label)}
             cameraOffset={[0, 0, -12]}
             fontSize={0.62}
           />
           <RevealLabel3D
-            phase={REVEAL_PHASES.soul}
-            text={stripRealmSuffix(REVEAL_PHASES.spirit.label)}
+            phase={DESERT_NEW_PATH_PHASES.soul}
+            text={stripRealmSuffix(DESERT_NEW_PATH_PHASES.spirit.label)}
             cameraOffset={[0, 0, -12]}
             fontSize={0.62}
           />

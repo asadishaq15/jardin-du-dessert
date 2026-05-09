@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
 import { setRevealT } from '../store/revealProgressStore'
 import { useRevealUiStore } from '../store/useRevealUiStore'
+import { useDesertPathProgressStore } from '../store/useDesertPathProgressStore'
 
 const DESERT_GLB_URL = '/3d/desert.glb'
 const CAMERA_GLB_URL = '/3d/camera(2).glb'
@@ -13,17 +14,11 @@ const SAND_EXR_URL = '/3d/sand-dunes-desert-aerial_2K_835f4211-f6ea-421c-ba13-a4
 /** Camera rig names from the shared Blender outliner screenshot. */
 const CAMERA_DRIVER_NAMES = ['Camera_Web', 'Camera_Web_Data', 'Camera']
 
-/**
- * Three-stage scroll:
- *   [0 → 1] camera moves from start to lock point
- *   [1 → 2] text phases animate while camera stays locked
- *   [2 → 3] camera resumes from lock point to end
- */
+/** Scroll/swiper drives `total` in [0, TOTAL_MAX]; camera path progress is linear in `total`. */
 const TOTAL_MAX = 3
-const CAMERA_LOCK_PROGRESS = 0.423
-const LOCK_TRANSITION_TOTAL_SPAN = 0.16
-const LOCK_TRANSITION_PATH_PORTION = 0.14
 const WHEEL_TO_PROGRESS = 0.00014
+/** Vertical finger drag → same total progression units as wheel (scaled by pixels per frame). */
+const TOUCH_DRAG_TO_PROGRESS = WHEEL_TO_PROGRESS * 4
 const SMOOTH_LAMBDA = 5.2
 const MAX_DAMP_DT = 0.08
 const PARALLAX_MAX_X = 0.34
@@ -88,33 +83,9 @@ function findCameraPathAction(actions) {
   return bestScore > 0 ? best : null
 }
 
-function mapTotalToRevealProgress(total) {
-  return THREE.MathUtils.clamp(total - 1, 0, 1)
-}
-
+/** Normalized camera path animation time [0, 1] vs scroll amount `total`. */
 function mapTotalToPathProgress(total) {
-  const blendSpan = THREE.MathUtils.clamp(LOCK_TRANSITION_TOTAL_SPAN, 0.001, 0.45)
-  const lockInStart = 1 - blendSpan
-  const lockOutEnd = 2 + blendSpan
-  const preLockProgress = CAMERA_LOCK_PROGRESS * (1 - LOCK_TRANSITION_PATH_PORTION)
-  const postLockProgress =
-    CAMERA_LOCK_PROGRESS + (1 - CAMERA_LOCK_PROGRESS) * LOCK_TRANSITION_PATH_PORTION
-
-  if (total <= lockInStart) {
-    const u = THREE.MathUtils.clamp(total / lockInStart, 0, 1)
-    return THREE.MathUtils.lerp(0, preLockProgress, u)
-  }
-  if (total <= 1) {
-    const u = THREE.MathUtils.smoothstep(total, lockInStart, 1)
-    return THREE.MathUtils.lerp(preLockProgress, CAMERA_LOCK_PROGRESS, u)
-  }
-  if (total <= 2) return CAMERA_LOCK_PROGRESS
-  if (total <= lockOutEnd) {
-    const u = THREE.MathUtils.smoothstep(total, 2, lockOutEnd)
-    return THREE.MathUtils.lerp(CAMERA_LOCK_PROGRESS, postLockProgress, u)
-  }
-  const u = THREE.MathUtils.clamp((total - lockOutEnd) / (TOTAL_MAX - lockOutEnd), 0, 1)
-  return THREE.MathUtils.lerp(postLockProgress, 1, u)
+  return THREE.MathUtils.clamp(total / TOTAL_MAX, 0, 1)
 }
 
 function applySandTexture(scene, texture) {
@@ -161,7 +132,7 @@ function applySandTexture(scene, texture) {
  * - `camera.glb` for path animation rig
  * - EXR texture mapped onto desert sand material
  */
-export function DesertGlbNew({ mobileOptimized = false }) {
+export function DesertGlbNew({ touchParallax = false }) {
   const { scene: desertScene } = useGLTF(DESERT_GLB_URL)
   const { scene: cameraScene, animations: cameraAnimations } = useGLTF(CAMERA_GLB_URL)
   const sandExr = useLoader(EXRLoader, SAND_EXR_URL)
@@ -220,9 +191,11 @@ export function DesertGlbNew({ mobileOptimized = false }) {
     lastPathProgRef.current = -1
     setRevealT(0)
     setHorizonHotspotVisible(false)
+    useDesertPathProgressStore.getState().resetDesertPathProgress()
     return () => {
       setRevealT(0)
       setHorizonHotspotVisible(false)
+      useDesertPathProgressStore.getState().resetDesertPathProgress()
     }
   }, [setHorizonHotspotVisible])
 
@@ -260,7 +233,7 @@ export function DesertGlbNew({ mobileOptimized = false }) {
   }, [gl])
 
   useEffect(() => {
-    if (mobileOptimized) return undefined
+    if (touchParallax) return undefined
 
     const el = gl.domElement
 
@@ -284,10 +257,10 @@ export function DesertGlbNew({ mobileOptimized = false }) {
       el.removeEventListener('pointermove', onPointerMove)
       el.removeEventListener('pointerleave', onPointerLeave)
     }
-  }, [gl, mobileOptimized])
+  }, [gl, touchParallax])
 
   useEffect(() => {
-    if (!mobileOptimized) {
+    if (!touchParallax) {
       tiltTarget.current.x = 0
       tiltTarget.current.y = 0
       return undefined
@@ -338,9 +311,52 @@ export function DesertGlbNew({ mobileOptimized = false }) {
 
     start()
     return stop
-  }, [gl, mobileOptimized])
+  }, [gl, touchParallax])
 
-  /* Stage map: camera-in -> labels (locked cam) -> camera-out. */
+  /** One-finger vertical drag advances path on touch devices (same clamp as wheel). */
+  useEffect(() => {
+    if (!touchParallax) return undefined
+
+    const el = gl.domElement
+    let activeId = null
+    let lastY = 0
+
+    const onTouchStart = (e) => {
+      if (e.touches.length !== 1) return
+      const t = e.touches[0]
+      activeId = t.identifier
+      lastY = t.clientY
+    }
+
+    const onTouchMove = (e) => {
+      if (activeId === null) return
+      const t = Array.from(e.touches).find((x) => x.identifier === activeId)
+      if (!t) return
+      e.preventDefault()
+      const dy = lastY - t.clientY
+      lastY = t.clientY
+      const next = totalTargetRef.current + dy * TOUCH_DRAG_TO_PROGRESS
+      totalTargetRef.current = THREE.MathUtils.clamp(next, 0, TOTAL_MAX)
+    }
+
+    const clear = () => {
+      activeId = null
+    }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    el.addEventListener('touchend', clear)
+    el.addEventListener('touchcancel', clear)
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchmove', onTouchMove)
+      el.removeEventListener('touchend', clear)
+      el.removeEventListener('touchcancel', clear)
+    }
+  }, [gl, touchParallax])
+
+  /* Realm labels read `getRevealT()` as normalized camera path progress [0, 1]. */
   useFrame((_, delta) => {
     const pathAction = pathActionRef.current
     const dt = Math.min(delta, MAX_DAMP_DT)
@@ -353,11 +369,11 @@ export function DesertGlbNew({ mobileOptimized = false }) {
     )
 
     const total = totalRef.current
-    const revealT = mapTotalToRevealProgress(total)
     const pathProg = mapTotalToPathProgress(total)
 
-    setRevealT(revealT)
+    setRevealT(pathProg)
     setHorizonHotspotVisible(pathProg >= 0.99)
+    useDesertPathProgressStore.getState().setPathProgressFromCanvas(pathProg)
 
     if (!pathAction?.getClip()) return
     const duration = Math.max(pathAction.getClip().duration, 1e-6)
@@ -369,8 +385,8 @@ export function DesertGlbNew({ mobileOptimized = false }) {
     if (!driver) return
 
     const dt = Math.min(delta, MAX_DAMP_DT)
-    const swayTx = mobileOptimized ? tiltTarget.current.x : pointerTarget.current.x
-    const swayTy = mobileOptimized ? tiltTarget.current.y : pointerTarget.current.y
+    const swayTx = touchParallax ? tiltTarget.current.x : pointerTarget.current.x
+    const swayTy = touchParallax ? tiltTarget.current.y : pointerTarget.current.y
 
     swaySmoothed.current.x = THREE.MathUtils.damp(
       swaySmoothed.current.x,

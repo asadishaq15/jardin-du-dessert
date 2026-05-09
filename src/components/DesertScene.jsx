@@ -1,5 +1,12 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import React, { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import React, {
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { Environment } from '@react-three/drei'
 import { DesertGlb } from './DesertGlb'
 import { SceneMoon3D } from './SceneMoon3D'
@@ -30,6 +37,12 @@ import {
 } from '../constants/revealTimeline'
 import { PROTOTYPE_HOVER_HORIZON } from '../constants/prototypeHoverCopy'
 import { RevealLabel3D } from './RevealLabel3D'
+import {
+  DESERT_QUALITY_TIER,
+  getDesertQualityRendererSettings,
+  getDesertSelectiveBloomIntensity,
+  getDesertShadowCastMode,
+} from '../utils/desertQualityTier'
 
 /** Single useFrame: advances `t` then camera — guarantees store is current before other useFrames read `t`. */
 function RevealAndCamera({ started }) {
@@ -133,8 +146,6 @@ function SceneReadyBridge() {
   return null
 }
 
-const SHADOW_MAP_FULL = 4096
-const SHADOW_MAP_MOBILE = 1024
 const stripRealmSuffix = (label) => label.replace(/\s*realm\s*$/i, '')
 
 /** Key light from upper-left (+X ray dir) so shadows fall to the right of cacti/bushes, matching the sun disk on the left. */
@@ -203,7 +214,7 @@ const DesertScene = ({
   onHorizonClick,
   started = false,
   scenePointerEvents = true,
-  mobileOptimized = false,
+  qualityTier = DESERT_QUALITY_TIER.HIGH,
 }) => {
   const horizonHotspotVisible = useRevealUiStore((s) => s.horizonHotspotVisible)
   const aboutOpen = useTopNavStore((s) => s.aboutOpen)
@@ -220,7 +231,11 @@ const DesertScene = ({
     if (d) d.layers.set(SUN_LAYER)
   }, [])
 
-  const shadowMapSize = mobileOptimized ? SHADOW_MAP_MOBILE : SHADOW_MAP_FULL
+  const settings = useMemo(() => getDesertQualityRendererSettings(qualityTier), [qualityTier])
+  const shadowMapSize = settings.shadowMapSize
+  const bloomIntensity = getDesertSelectiveBloomIntensity(qualityTier)
+  const useSimplePost = qualityTier === DESERT_QUALITY_TIER.PERFORMANCE
+  const contrastMain = useSimplePost ? 0.15 : 0.17
 
   return (
     <div className={`desert-scene-shell${aboutOpen ? ' desert-scene-shell--hidden' : ''}`}>
@@ -228,8 +243,9 @@ const DesertScene = ({
         <HorizonHotspot onHorizonClick={onHorizonClick} onSelect={openCatalogOverlay} />
       )}
       <Canvas
+        key={qualityTier}
         shadows
-        dpr={mobileOptimized ? [1, 1.25] : [1, 2]}
+        dpr={settings.dpr}
         style={{
           height: '100dvh',
           minHeight: '100vh',
@@ -241,14 +257,16 @@ const DesertScene = ({
         }}
         camera={{ position: [0, 0, 10], fov: 50 }}
         gl={{
-          antialias: !mobileOptimized,
+          antialias: settings.antialias,
           toneMapping: THREE.ACESFilmicToneMapping,
           outputColorSpace: THREE.SRGBColorSpace,
         }}
         onCreated={({ gl }) => {
           gl.setClearColor('#050505', 1)
           gl.toneMappingExposure = 1.05
-          gl.shadowMap.type = mobileOptimized ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap
+          gl.shadowMap.type = settings.softShadow
+            ? THREE.PCFSoftShadowMap
+            : THREE.PCFShadowMap
         }}
       >
         {/* Solid bg until HDR Environment loads (Suspense) — prevents bright clear flash */}
@@ -279,7 +297,7 @@ const DesertScene = ({
             receiveShadow
             showFoliage={started}
             onHoverSelect={openCatalogOverlay}
-            mobileOptimized={mobileOptimized}
+            shadowCastMode={getDesertShadowCastMode(qualityTier)}
           />
           {/* COMMENTED OUT: Sun and Moon objects removed from ModelBeta.glb
           <CelestialRevealEnvelope
@@ -330,7 +348,7 @@ const DesertScene = ({
           />
           <SceneReadyBridge />
         </Suspense>
-        {mobileOptimized ? (
+        {useSimplePost ? (
           <EffectComposer multisampling={0}>
             <HueSaturation saturation={-1} />
             <BrightnessContrast brightness={-0.03} contrast={0.15} />
@@ -338,13 +356,13 @@ const DesertScene = ({
         ) : (
           <EffectComposer multisampling={0}>
             <HueSaturation saturation={-1} />
-            <BrightnessContrast brightness={-0.03} contrast={0.17} />
+            <BrightnessContrast brightness={-0.03} contrast={contrastMain} />
             <SelectiveBloom
               lights={[sunBloomAmbientRef, sunBloomKeyRef]}
               selectionLayer={SUN_LAYER}
               luminanceThreshold={0.22}
               luminanceSmoothing={0.45}
-              intensity={1.35}
+              intensity={bloomIntensity}
               mipmapBlur
             />
           </EffectComposer>

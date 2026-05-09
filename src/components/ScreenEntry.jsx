@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 
 export default function ScreenEntry() {
@@ -16,9 +15,6 @@ export default function ScreenEntry() {
           <span>ENTER</span>
           <span aria-hidden="true">→</span>
         </button>
-        <Link to="/desert-test" className="btn btn--ghost">
-          PREVIEW NEW MODEL
-        </Link>
         <div className="sub-label">FOR HOSPITALITY · SECURE STATE SOVEREIGNTY</div>
       </div>
     </section>

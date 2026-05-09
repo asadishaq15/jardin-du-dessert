@@ -703,11 +703,101 @@ body {
 .desert-controls .sound-btn {
   position: absolute;
   top: 24px; right: 48px;
-  color: #555; 
+  color: #fff;
   border: 0;
   padding: 0;
 }
-.desert-controls .sound-btn .sound-btn__label { color: #555; }
+
+/* Desert scroll hint — camera path on /desert-test (wheel / vertical swipe) */
+.desert-scroll-hint {
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  bottom: max(28px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 88;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.65s cubic-bezier(0.22, 0.61, 0.36, 1),
+    visibility 0s linear 0.65s;
+}
+
+.desert-scroll-hint--visible {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.65s cubic-bezier(0.22, 0.61, 0.36, 1),
+    visibility 0s linear 0s;
+}
+
+.desert-scroll-hint__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.desert-scroll-hint__track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.desert-scroll-hint__line {
+  display: block;
+  width: 1px;
+  height: 26px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(212, 175, 55, 0.4),
+    rgba(255, 255, 255, 0.55)
+  );
+  border-radius: 1px;
+}
+
+.desert-scroll-hint__glyph {
+  display: flex;
+  justify-content: center;
+  animation: desertScrollHintFloat 2.25s ease-in-out infinite;
+}
+
+.desert-scroll-hint--static .desert-scroll-hint__glyph {
+  animation: none;
+}
+
+.desert-scroll-hint__chevron {
+  display: block;
+  color: rgba(255, 255, 255, 0.88);
+  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.22));
+}
+
+.desert-scroll-hint__label {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+@keyframes desertScrollHintFloat {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.62;
+  }
+  50% {
+    transform: translateY(9px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desert-scroll-hint__glyph {
+    animation: none;
+  }
+}
 
 /* ————— DESERT ROTATE HINT (mobile portrait overlay) ————— */
 .desert-rotate-hint {

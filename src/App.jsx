@@ -12,13 +12,12 @@ import ScreenSubmitted from './components/ScreenSubmitted'
 // import ScreenLogoDrawTest from './components/ScreenLogoDrawTest'
 import StateModal from './components/StateModal'
 import AboutModalNew from './components/AboutModalNew'
-import DesertView from './components/DesertView'
 import DesertViewNew from './components/DesertViewNew'
 import { useAppStore } from './store/useAppStore'
 import { useSoundStore } from './store/useSoundStore'
 import { useDesertAudio } from './hooks/useDesertAudio'
 
-/** Main shell: zustand screens + modals (everything except `/desert-test` route). */
+/** Main shell: zustand screens + modals (fullscreen desert uses same route as `/desert-test`). */
 function MainApp() {
   const screen = useAppStore((s) => s.screen)
   const closeStateModal = useAppStore((s) => s.closeStateModal)
@@ -54,7 +53,7 @@ function MainApp() {
   }, [screen, closeStateModal, setAboutOpen, setPlaying])
 
   if (screen === 'desert') {
-    return <DesertView />
+    return <DesertViewNew />
   }
 
   return (

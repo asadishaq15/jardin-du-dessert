@@ -54,6 +54,18 @@ export const REVEAL_PHASES = {
   soul: { id: 'soul', start: 0.8, end: 1.0, label: 'Soul Realm' },
 }
 
+/**
+ * `/desert-test` only: same shape as REVEAL_PHASES but `start`/`end` are fractions of **camera path**
+ * progress [0, 1] (not legacy time-based reveal). Tune independently from REVEAL_PHASES.
+ */
+export const DESERT_NEW_PATH_PHASES = {
+  mind: { id: 'mind', start: 0.0, end: 0.2, label: 'Mind Realm' },
+  body: { id: 'body', start: 0.2, end: 0.4, label: 'Body Realm' },
+  heart: { id: 'heart', start: 0.4, end: 0.6, label: 'Heart Realm' },
+  spirit: { id: 'spirit', start: 0.6, end: 0.8, label: 'Spirit Realm' },
+  soul: { id: 'soul', start: 0.8, end: 1.0, label: 'Soul Realm' },
+}
+
 /** `{ rampStart, rampDuration }` for the object-reveal slice of a phase (after label-out finishes). */
 export function phaseObjectWindow(phase) {
   const span = phase.end - phase.start
