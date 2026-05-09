@@ -743,6 +743,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 5px;
+  color: #fff;
 }
 
 .desert-scroll-hint__line {
@@ -751,16 +752,18 @@ body {
   height: 26px;
   background: linear-gradient(
     to bottom,
-    transparent,
-    rgba(212, 175, 55, 0.4),
-    rgba(255, 255, 255, 0.55)
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.75),
+    #ffffff
   );
   border-radius: 1px;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
 }
 
 .desert-scroll-hint__glyph {
   display: flex;
   justify-content: center;
+  color: #fff;
   animation: desertScrollHintFloat 2.25s ease-in-out infinite;
 }
 
@@ -770,8 +773,9 @@ body {
 
 .desert-scroll-hint__chevron {
   display: block;
-  color: rgba(255, 255, 255, 0.88);
-  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.22));
+  color: #fff;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.65))
+    drop-shadow(0 2px 10px rgba(255, 255, 255, 0.35));
 }
 
 .desert-scroll-hint__label {
@@ -779,13 +783,14 @@ body {
   font-size: 9px;
   letter-spacing: 0.42em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.42);
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 @keyframes desertScrollHintFloat {
   0%, 100% {
     transform: translateY(0);
-    opacity: 0.62;
+    opacity: 0.88;
   }
   50% {
     transform: translateY(9px);
