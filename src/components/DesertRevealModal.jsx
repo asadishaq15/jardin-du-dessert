@@ -75,22 +75,28 @@ export default function DesertRevealModal() {
         className="desert-reveal-panel"
         role="dialog"
         aria-modal="true"
-        aria-label="Request access"
+        aria-label="Request access to the desert"
         onClick={(e) => e.stopPropagation()}
       >
         {!submitted ? (
           <>
-            <h2 className="desert-reveal-panel__title">Access Is Private</h2>
+            <h2 className="desert-reveal-panel__lead">
+              <span className="desert-reveal-panel__lead-line">A hidden garden for those</span>
+              <span className="desert-reveal-panel__lead-line">who cherish silence.</span>
+            </h2>
 
             <div className="desert-reveal-panel__rule" aria-hidden="true" />
 
             <div className="desert-reveal-panel__copy">
-              <p>The desert is visible.<br />Access is selective.</p>
-              <p>Full state access is released<br />through selected properties.</p>
+              <p>
+                The state shapes the space
+                <br />
+                and the people who choose it.
+              </p>
             </div>
 
             <form className="desert-reveal-panel__form" onSubmit={handleSubmit}>
-              <div className="desert-reveal-panel__form-label">Request Access</div>
+              <div className="desert-reveal-panel__form-label">REQUEST PRIVATE ACCESS</div>
               <div className="desert-reveal-panel__field">
                 <input
                   type="email"

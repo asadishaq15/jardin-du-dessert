@@ -174,20 +174,24 @@ export default function DesertViewNew() {
         <DesertSceneNew qualityTier={qualityTier} touchParallax={touchParallax} />
         <DesertScrollIndicator showLoading={showLoading} />
         <div className="desert-controls">
-          <button type="button" className="desert-return" onClick={goHome}>
+          <button
+            type="button"
+            className="desert-return desert-return--icon-only"
+            onClick={goHome}
+            aria-label="Return home"
+            title="Return home"
+          >
             <span aria-hidden="true">←</span>
-            <span>CLICK TO RETURN</span>
           </button>
 
           <button
             type="button"
-            className={`sound-btn${playing ? ' is-playing' : ''}`}
+            className={`sound-btn sound-btn--icon-only${playing ? ' is-playing' : ''}`}
             onClick={toggle}
-            aria-label="Toggle sound"
+            aria-label={playing ? 'Pause ambient sound' : 'Play ambient sound'}
             title={playing ? 'Pause' : 'Play ambient'}
           >
             <SoundWave playing={playing} />
-            <span className="sound-btn__label">SOUND</span>
           </button>
         </div>
       </div>

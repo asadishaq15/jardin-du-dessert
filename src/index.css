@@ -699,6 +699,18 @@ body {
 }
 .desert-return:hover { opacity: .7; }
 
+.desert-return.desert-return--icon-only {
+  gap: 0;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 26px;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Position the shared sound button in the top right of the desert view */
 .desert-controls .sound-btn {
   position: absolute;
@@ -708,13 +720,25 @@ body {
   padding: 0;
 }
 
-/* Desert scroll hint — camera path on /desert-test (wheel / vertical swipe) */
+.desert-controls .sound-btn.sound-btn--icon-only {
+  margin: 0;
+  padding: 10px;
+  border-left: 0;
+  gap: 0;
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Desert scroll hint — centered; wheel / vertical swipe (no text label) */
 .desert-scroll-hint {
   pointer-events: none;
   position: absolute;
-  left: 50%;
-  bottom: max(28px, env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 88;
   opacity: 0;
   visibility: hidden;
@@ -735,25 +759,32 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  /* Sit slightly below true center so it reads over the horizon / mid-scene */
+  transform: translateY(clamp(48px, 9vh, 120px));
 }
 
 .desert-scroll-hint__track {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   color: #fff;
+  animation: desertScrollHintFloat 2.25s ease-in-out infinite;
+}
+
+.desert-scroll-hint--static .desert-scroll-hint__track {
+  animation: none;
 }
 
 .desert-scroll-hint__line {
   display: block;
   width: 1px;
-  height: 26px;
+  height: 32px;
   background: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.15),
-    rgba(255, 255, 255, 0.75),
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.85),
     #ffffff
   );
   border-radius: 1px;
@@ -764,42 +795,30 @@ body {
   display: flex;
   justify-content: center;
   color: #fff;
-  animation: desertScrollHintFloat 2.25s ease-in-out infinite;
-}
-
-.desert-scroll-hint--static .desert-scroll-hint__glyph {
-  animation: none;
 }
 
 .desert-scroll-hint__chevron {
   display: block;
+  width: 36px;
+  height: 22px;
   color: #fff;
   filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.65))
     drop-shadow(0 2px 10px rgba(255, 255, 255, 0.35));
 }
 
-.desert-scroll-hint__label {
-  font-family: var(--sans);
-  font-size: 9px;
-  letter-spacing: 0.42em;
-  text-transform: uppercase;
-  color: #ffffff;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-
 @keyframes desertScrollHintFloat {
   0%, 100% {
-    transform: translateY(0);
+    transform: translateY(-4px);
     opacity: 0.88;
   }
   50% {
-    transform: translateY(9px);
+    transform: translateY(12px);
     opacity: 1;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .desert-scroll-hint__glyph {
+  .desert-scroll-hint__track {
     animation: none;
   }
 }

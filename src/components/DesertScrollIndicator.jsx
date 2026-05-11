@@ -34,8 +34,6 @@ export default function DesertScrollIndicator({ showLoading }) {
           <span className="desert-scroll-hint__glyph">
             <svg
               className="desert-scroll-hint__chevron"
-              width="20"
-              height="12"
               viewBox="0 0 20 12"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -51,7 +49,6 @@ export default function DesertScrollIndicator({ showLoading }) {
             </svg>
           </span>
         </div>
-        <span className="desert-scroll-hint__label">Scroll</span>
       </div>
     </div>
   )
