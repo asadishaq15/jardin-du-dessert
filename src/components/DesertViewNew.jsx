@@ -50,6 +50,8 @@ export default function DesertViewNew() {
     setSceneRevealed(false)
     loaderFinishedRef.current = false
     setDismissedHint(false)
+    setTouchParallax(false)
+    setForceLandscape(false)
     wasLandscapeRef.current = false
     setQualityTier(resolveDesertQualityTier())
     useDesertPathProgressStore.getState().resetDesertPathProgress()
@@ -66,6 +68,8 @@ export default function DesertViewNew() {
   }, [setPlaying])
 
   useEffect(() => {
+    if (showLoading) return undefined
+
     const hasWindow = typeof window !== 'undefined'
     if (!hasWindow) return undefined
 
@@ -145,7 +149,7 @@ export default function DesertViewNew() {
         orientationApi.unlock()
       }
     }
-  }, [])
+  }, [showLoading])
 
   const handleLoadingFadeStart = useCallback(() => {
     setSceneRevealed(true)
@@ -173,7 +177,7 @@ export default function DesertViewNew() {
     return () => document.removeEventListener('keydown', onKey)
   }, [goHome])
 
-  const showRotateHint = forceLandscape && !dismissedHint
+  const showRotateHint = !showLoading && forceLandscape && !dismissedHint
 
   return (
     <div className="desert-view">

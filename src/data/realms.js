@@ -5,7 +5,7 @@
 export const REALMS = {
   BODY: {
     title: 'BODY REALM',
-    sub: 'The physical experience of the organism.',
+    sub: 'The physical experience',
     states: [
       { name: 'NURTURING', core: 'Nourish what matters', biz: 'Ideal for wellness retreats and regenerative environments.', status: 'AVAILABLE' },
       { name: 'STABILITY', core: 'Establish your ground', biz: 'Creates control and grounding for business-class properties.', status: 'AVAILABLE' },
@@ -15,7 +15,7 @@ export const REALMS = {
   },
   MIND: {
     title: 'MIND REALM',
-    sub: 'The perception and mental clarity of the organism.',
+    sub: 'The perception and mental clarity',
     states: [
       { name: 'INNER TRUTH', core: 'Look within', biz: 'Enhances clarity and authentic decision-making.', status: 'AVAILABLE' },
       { name: 'DIRECTION', core: 'Command your focus', biz: 'Sharpens focus in high-performance environments.', status: 'AVAILABLE' },
@@ -25,7 +25,7 @@ export const REALMS = {
   },
   HEART: {
     title: 'HEART REALM',
-    sub: 'The emotional world of the organism.',
+    sub: 'The emotional world',
     states: [
       { name: 'CONNECTION', core: 'Align your values', biz: 'Strengthens emotional engagement and guest connection.', status: 'AVAILABLE' },
       { name: 'BALANCE', core: 'Find your center', biz: 'Recalibrates the nervous system in urban environments.', status: 'AVAILABLE' },
@@ -35,7 +35,7 @@ export const REALMS = {
   },
   SOUL: {
     title: 'SOUL REALM',
-    sub: 'The inner essence and depth of the organism.',
+    sub: 'The inner essence and depth',
     states: [
       { name: 'INNER KNOWING', core: 'Know without words', biz: 'Deepens intuition and inner calm.', status: 'AVAILABLE' },
       { name: 'RELEASE', core: 'Let go to become', biz: 'Facilitates emotional reset and psychological release.', status: 'AVAILABLE' },
@@ -45,7 +45,7 @@ export const REALMS = {
   },
   SPIRIT: {
     title: 'SPIRIT REALM',
-    sub: 'The higher consciousness and life force of the organism.',
+    sub: 'The higher consciousness and life force',
     states: [
       { name: 'CLARITY', core: 'Live in the light', biz: 'Delivers absolute clarity and high-end positioning.', status: 'LOCKED · IBIZA' },
       { name: 'RENEWAL', core: 'Step into the future', biz: 'Ideal for repositioning and new chapter experiences.', status: 'AVAILABLE' },
