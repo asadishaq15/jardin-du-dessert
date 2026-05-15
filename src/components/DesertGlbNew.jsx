@@ -6,6 +6,7 @@ import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
 import { setRevealT } from '../store/revealProgressStore'
 import { useRevealUiStore } from '../store/useRevealUiStore'
 import { useDesertPathProgressStore } from '../store/useDesertPathProgressStore'
+import { useAssetReadyStore } from '../store/useAssetReadyStore'
 
 const DESERT_GLB_URL = '/3d/desert.glb'
 const CAMERA_GLB_URL = '/3d/camera(2).glb'
@@ -139,6 +140,7 @@ export function DesertGlbNew({ touchParallax = false }) {
   const { actions } = useAnimations(cameraAnimations, cameraScene)
   const { camera, gl } = useThree()
   const setHorizonHotspotVisible = useRevealUiStore((s) => s.setHorizonHotspotVisible)
+  const setSceneAssetsReady = useAssetReadyStore((s) => s.setSceneAssetsReady)
 
   const driverRef = useRef(null)
   const pathActionRef = useRef(null)
@@ -218,7 +220,12 @@ export function DesertGlbNew({ touchParallax = false }) {
         action.play()
       }
     }
-  }, [actions])
+
+    if (pathAction) {
+      setSceneAssetsReady(true)
+    }
+    return () => setSceneAssetsReady(false)
+  }, [actions, setSceneAssetsReady])
 
   useEffect(() => {
     const el = gl.domElement

@@ -37,6 +37,7 @@ export default function DesertViewNew() {
   const sceneAssetsReady = useAssetReadyStore((s) => s.sceneAssetsReady)
   const [qualityTier, setQualityTier] = useState(() => resolveDesertQualityTier())
   const [showLoading, setShowLoading] = useState(true)
+  const [sceneRevealed, setSceneRevealed] = useState(false)
   const [forceLandscape, setForceLandscape] = useState(false)
   const [dismissedHint, setDismissedHint] = useState(false)
   const [touchParallax, setTouchParallax] = useState(false)
@@ -46,6 +47,7 @@ export default function DesertViewNew() {
   useEffect(() => {
     setSceneAssetsReady(false)
     setShowLoading(true)
+    setSceneRevealed(false)
     loaderFinishedRef.current = false
     setDismissedHint(false)
     wasLandscapeRef.current = false
@@ -145,11 +147,17 @@ export default function DesertViewNew() {
     }
   }, [])
 
+  const handleLoadingFadeStart = useCallback(() => {
+    setSceneRevealed(true)
+  }, [])
+
   const handleLoadingFadeComplete = useCallback(() => {
     if (loaderFinishedRef.current) return
     loaderFinishedRef.current = true
     setShowLoading(false)
   }, [])
+
+  const touchParallaxActive = touchParallax && !showLoading
 
   const goHome = useCallback(() => {
     setPlaying(false)
@@ -170,8 +178,17 @@ export default function DesertViewNew() {
   return (
     <div className="desert-view">
       <div className="desert-view__viewport">
-        {showLoading && <DesertLoading onFadeComplete={handleLoadingFadeComplete} />}
-        <DesertSceneNew qualityTier={qualityTier} touchParallax={touchParallax} />
+        {showLoading && (
+          <DesertLoading
+            onFadeStart={handleLoadingFadeStart}
+            onFadeComplete={handleLoadingFadeComplete}
+          />
+        )}
+        <DesertSceneNew
+          qualityTier={qualityTier}
+          touchParallax={touchParallaxActive}
+          sceneRevealed={sceneRevealed}
+        />
         <DesertScrollIndicator showLoading={showLoading} />
         <div className="desert-controls">
           <button

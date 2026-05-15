@@ -9,7 +9,7 @@ const FALLBACK_MIN_PLAYBACK_MS = 3000
  * Plays the cactus animation from /public while scene assets are loading,
  * then fades out once sceneAssetsReady becomes true and the animation has played once.
  */
-export default function DesertLoading({ onFadeComplete }) {
+export default function DesertLoading({ onFadeStart, onFadeComplete }) {
   const ready = useAssetReadyStore((s) => s.sceneAssetsReady)
   const [shouldRender, setShouldRender] = useState(true)
   const [hasPlayedOnce, setHasPlayedOnce] = useState(false)
@@ -31,14 +31,14 @@ export default function DesertLoading({ onFadeComplete }) {
   }, [videoDurationMs])
 
   useEffect(() => {
-    if (isFading) {
-      const timer = setTimeout(() => {
-        setShouldRender(false)
-        onFadeComplete?.()
-      }, FADE_DURATION_MS)
-      return () => clearTimeout(timer)
-    }
-  }, [isFading, onFadeComplete])
+    if (!isFading) return undefined
+    onFadeStart?.()
+    const timer = setTimeout(() => {
+      setShouldRender(false)
+      onFadeComplete?.()
+    }, FADE_DURATION_MS)
+    return () => clearTimeout(timer)
+  }, [isFading, onFadeStart, onFadeComplete])
 
   const startPlaybackTimer = (durationMs = videoDurationMsRef.current) => {
     if (playbackTimerRef.current) {

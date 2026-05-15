@@ -13,19 +13,9 @@ import {
   Bloom,
   Vignette,
 } from '@react-three/postprocessing'
-import { useAssetReadyStore } from '../store/useAssetReadyStore'
 import { DesertGlbNew } from './DesertGlbNew'
 import { RevealLabel3D } from './RevealLabel3D'
 import { DESERT_NEW_PATH_PHASES } from '../constants/revealTimeline'
-
-function SceneReadyBridge() {
-  const setSceneAssetsReady = useAssetReadyStore((s) => s.setSceneAssetsReady)
-  useEffect(() => {
-    setSceneAssetsReady(true)
-    return () => setSceneAssetsReady(false)
-  }, [setSceneAssetsReady])
-  return null
-}
 
 /**
  * Strong directional sun from upper-right → casts deep shadows into dune hollows.
@@ -78,12 +68,15 @@ const stripRealmSuffix = (label) => label.replace(/\s*realm\s*$/i, '')
 export default function DesertSceneNew({
   qualityTier = DESERT_QUALITY_TIER.HIGH,
   touchParallax = false,
+  sceneRevealed = false,
 }) {
   const settings = useMemo(() => getDesertQualityRendererSettings(qualityTier), [qualityTier])
   const normalBias = settings.directionalNormalBiasTight ? 0.004 : 0.006
 
   return (
-    <div className="desert-scene-shell">
+    <div
+      className={`desert-scene-shell${sceneRevealed ? '' : ' desert-scene-shell--loading'}`}
+    >
       <Canvas
         key={qualityTier}
         shadows
@@ -95,6 +88,7 @@ export default function DesertSceneNew({
           minWidth: '100vw',
           display: 'block',
           background: '#a8b4c0',
+          pointerEvents: sceneRevealed ? 'auto' : 'none',
         }}
         camera={{ position: [0, 0, 10], fov: 50 }}
         gl={{
@@ -164,7 +158,6 @@ export default function DesertSceneNew({
             fontSize={0.62}
           />
 
-          <SceneReadyBridge />
         </Suspense>
 
         <EffectComposer multisampling={0}>

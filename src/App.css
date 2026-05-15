@@ -16,6 +16,10 @@
   min-height: 100vh;
 }
 
+.desert-scene-shell--loading {
+  visibility: hidden;
+}
+
 .catalog-overlay {
   position: fixed;
   inset: 0;
