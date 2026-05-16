@@ -70,20 +70,26 @@ export default function DesertLoading({ onFadeStart, onFadeComplete }) {
       aria-label="Loading desert scene"
     >
       <div className="desert-loading__content">
-        <video
-          className="desert-loading__video"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          aria-hidden="true"
-          onLoadedMetadata={handleLoadedMetadata}
-          onPlaying={() => startPlaybackTimer()}
-          onError={() => startPlaybackTimer(FALLBACK_MIN_PLAYBACK_MS)}
-        >
-          <source src="/cactusAnimation.webm" type="video/webm" />
-        </video>
+        <div className="desert-loading__video-wrap">
+          <video
+            className="desert-loading__video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+            onLoadedMetadata={handleLoadedMetadata}
+            onPlaying={() => startPlaybackTimer()}
+            onError={() => startPlaybackTimer(FALLBACK_MIN_PLAYBACK_MS)}
+          >
+            <source src="/cactusAnimation.webm" type="video/webm" />
+          </video>
+        </div>
+        <div className="desert-loading__text">You are entering silence</div>
+        <div className="desert-loading__bar-container">
+          <div className={`desert-loading__bar ${ready ? 'is-full' : ''}`} />
+        </div>
       </div>
     </div>
   )
