@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { preloadCactusLoadingVideo } from './utils/cactusLoadingVideo'
 import { Routes, Route } from 'react-router-dom'
 import './App.css'
 import './index.css'
@@ -78,6 +79,10 @@ function MainApp() {
 function App() {
   // Mount the audio element for the lifetime of the app
   useDesertAudio()
+
+  useEffect(() => {
+    preloadCactusLoadingVideo()
+  }, [])
 
   return (
     <Routes>

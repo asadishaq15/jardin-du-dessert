@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import { useSoundStore } from '../store/useSoundStore'
 import { useAssetReadyStore } from '../store/useAssetReadyStore'
-import DesertSceneNew from './DesertSceneNew'
 import DesertLoading from './DesertLoading'
+import { isCactusVideoPreloaded, preloadCactusLoadingVideo } from '../utils/cactusLoadingVideo'
+
+const DesertSceneNew = lazy(() => import('./DesertSceneNew'))
 import DesertRevealModal from './DesertRevealModal'
 import { DesertRotateHint } from './DesertRotateHint'
 import DesertScrollIndicator from './DesertScrollIndicator'
@@ -37,6 +39,7 @@ export default function DesertViewNew() {
   const sceneAssetsReady = useAssetReadyStore((s) => s.sceneAssetsReady)
   const [qualityTier, setQualityTier] = useState(() => resolveDesertQualityTier())
   const [showLoading, setShowLoading] = useState(true)
+  const [sceneMountReady, setSceneMountReady] = useState(isCactusVideoPreloaded)
   const [sceneRevealed, setSceneRevealed] = useState(false)
   const [forceLandscape, setForceLandscape] = useState(false)
   const [dismissedHint, setDismissedHint] = useState(false)
@@ -56,6 +59,17 @@ export default function DesertViewNew() {
     setQualityTier(resolveDesertQualityTier())
     useDesertPathProgressStore.getState().resetDesertPathProgress()
   }, [setSceneAssetsReady])
+
+  useEffect(() => {
+    if (sceneMountReady) return undefined
+    let cancelled = false
+    preloadCactusLoadingVideo().then(() => {
+      if (!cancelled) setSceneMountReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [sceneMountReady])
 
   useDesertAdaptiveQuality({
     assetsReady: sceneAssetsReady,
@@ -188,11 +202,15 @@ export default function DesertViewNew() {
             onFadeComplete={handleLoadingFadeComplete}
           />
         )}
-        <DesertSceneNew
-          qualityTier={qualityTier}
-          touchParallax={touchParallaxActive}
-          sceneRevealed={sceneRevealed}
-        />
+        {sceneMountReady && (
+          <Suspense fallback={null}>
+            <DesertSceneNew
+              qualityTier={qualityTier}
+              touchParallax={touchParallaxActive}
+              sceneRevealed={sceneRevealed}
+            />
+          </Suspense>
+        )}
         <DesertScrollIndicator showLoading={showLoading} />
         <div className="desert-controls">
           <button

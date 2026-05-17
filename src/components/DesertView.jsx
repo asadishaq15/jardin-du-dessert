@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { useSoundStore } from '../store/useSoundStore'
 import { useAssetReadyStore } from '../store/useAssetReadyStore'
 import { useRevealUiStore } from '../store/useRevealUiStore'
 import { setRevealT } from '../store/revealProgressStore'
-import DesertScene from './DesertScene'
 import DesertRevealModal from './DesertRevealModal'
 import DesertLoading from './DesertLoading'
+import { isCactusVideoPreloaded, preloadCactusLoadingVideo } from '../utils/cactusLoadingVideo'
+
+const DesertScene = lazy(() => import('./DesertScene'))
 import { DesertRotateHint } from './DesertRotateHint'
 import { resolveDesertQualityTier } from '../utils/desertQualityTier'
 import { useDesertAdaptiveQuality } from '../hooks/useDesertAdaptiveQuality'
@@ -39,6 +41,7 @@ export default function DesertView() {
   const [forceLandscape, setForceLandscape] = useState(false)
   const [dismissedHint, setDismissedHint] = useState(false)
   const [showLoading, setShowLoading] = useState(true)
+  const [sceneMountReady, setSceneMountReady] = useState(isCactusVideoPreloaded)
   const [revealStarted, setRevealStarted] = useState(false)
   const [touchParallax, setTouchParallax] = useState(false)
   const wasLandscapeRef = useRef(false)
@@ -61,6 +64,17 @@ export default function DesertView() {
     wasLandscapeRef.current = false
     loaderFinishedRef.current = false
   }, [setHorizonHotspotVisible, setSceneAssetsReady])
+
+  useEffect(() => {
+    if (sceneMountReady) return undefined
+    let cancelled = false
+    preloadCactusLoadingVideo().then(() => {
+      if (!cancelled) setSceneMountReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [sceneMountReady])
 
   useDesertAdaptiveQuality({
     assetsReady: sceneAssetsReady,
@@ -165,11 +179,15 @@ export default function DesertView() {
     <div className="desert-view">
       <div className="desert-view__viewport">
         {showLoading && <DesertLoading onFadeComplete={handleLoadingFadeComplete} />}
-        <DesertScene
-          started={revealStarted}
-          scenePointerEvents={revealStarted}
-          qualityTier={qualityTier}
-        />
+        {sceneMountReady && (
+          <Suspense fallback={null}>
+            <DesertScene
+              started={revealStarted}
+              scenePointerEvents={revealStarted}
+              qualityTier={qualityTier}
+            />
+          </Suspense>
+        )}
         <div className="desert-controls">
           <button className="desert-return" onClick={handleReturn}>
             <span aria-hidden="true">←</span>

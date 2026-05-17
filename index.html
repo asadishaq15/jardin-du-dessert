@@ -11,6 +11,22 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Inter:wght@300;400;500&display=swap"
     rel="stylesheet" />
+  <script>
+    (function () {
+      var ua = navigator.userAgent;
+      var isIOS = /iPhone|iPad|iPod/i.test(ua);
+      var isSafariDesktop =
+        /Macintosh|Mac OS X/i.test(ua) &&
+        /Safari/i.test(ua) &&
+        !/Chrome|Chromium|CriOS|Edg|OPR|FxiOS/i.test(ua);
+      var href = isIOS || isSafariDesktop ? '/updatedmp4.mp4' : '/Updatedwebm.webm';
+      var link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'video';
+      link.href = href;
+      document.head.appendChild(link);
+    })();
+  </script>
 </head>
 
 <body>

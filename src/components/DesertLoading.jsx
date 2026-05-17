@@ -1,22 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAssetReadyStore } from '../store/useAssetReadyStore'
+import {
+  CACTUS_VIDEO_SAFARI_MP4,
+  getPreloadedCactusVideoSrc,
+  isCactusVideoPreloaded,
+  pickCactusVideoSrc,
+  preloadCactusLoadingVideo,
+} from '../utils/cactusLoadingVideo'
 
 const FADE_DURATION_MS = 1200
 const FALLBACK_MIN_PLAYBACK_MS = 3000
-const CACTUS_VIDEO_WEBM = '/Updatedwebm.webm'
-const CACTUS_VIDEO_SAFARI_MP4 = '/updatedmp4.mp4'
-
-/** iOS WebKit and desktop Safari lack WebM alpha; use white-matte MP4 there. */
-function pickCactusVideoSrc() {
-  if (typeof navigator === 'undefined') return CACTUS_VIDEO_WEBM
-  const ua = navigator.userAgent
-  const isIOS = /iPhone|iPad|iPod/i.test(ua)
-  const isSafariDesktop =
-    /Macintosh|Mac OS X/i.test(ua) &&
-    /Safari/i.test(ua) &&
-    !/Chrome|Chromium|CriOS|Edg|OPR|FxiOS/i.test(ua)
-  return isIOS || isSafariDesktop ? CACTUS_VIDEO_SAFARI_MP4 : CACTUS_VIDEO_WEBM
-}
 
 /**
  * Loading screen for the desert view.
@@ -27,12 +20,19 @@ export default function DesertLoading({ onFadeStart, onFadeComplete }) {
   const ready = useAssetReadyStore((s) => s.sceneAssetsReady)
   const [shouldRender, setShouldRender] = useState(true)
   const [hasPlayedOnce, setHasPlayedOnce] = useState(false)
+  const [videoReady, setVideoReady] = useState(isCactusVideoPreloaded)
   const [videoDurationMs, setVideoDurationMs] = useState(FALLBACK_MIN_PLAYBACK_MS)
   const videoDurationMsRef = useRef(FALLBACK_MIN_PLAYBACK_MS)
   const playbackTimerRef = useRef(null)
-  const [videoSrc] = useState(pickCactusVideoSrc)
+  const [videoSrc] = useState(
+    () => getPreloadedCactusVideoSrc() ?? pickCactusVideoSrc(),
+  )
   const isSafariVideo = videoSrc === CACTUS_VIDEO_SAFARI_MP4
   const isFading = ready && hasPlayedOnce
+
+  useEffect(() => {
+    preloadCactusLoadingVideo().then(() => setVideoReady(true))
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -77,6 +77,8 @@ export default function DesertLoading({ onFadeStart, onFadeComplete }) {
     videoDurationMsRef.current = durationMs
   }
 
+  const markVideoReady = () => setVideoReady(true)
+
   if (!shouldRender) return null
 
   return (
@@ -97,16 +99,25 @@ export default function DesertLoading({ onFadeStart, onFadeComplete }) {
             loop
             playsInline
             preload="auto"
+            fetchPriority="high"
             aria-hidden="true"
             src={videoSrc}
             onLoadedMetadata={handleLoadedMetadata}
-            onPlaying={() => startPlaybackTimer()}
+            onCanPlay={markVideoReady}
+            onPlaying={() => {
+              markVideoReady()
+              startPlaybackTimer()
+            }}
             onError={() => startPlaybackTimer(FALLBACK_MIN_PLAYBACK_MS)}
           />
         </div>
-        <div className="desert-loading__text">You are entering silence</div>
-        <div className="desert-loading__bar-container">
-          <div className={`desert-loading__bar ${ready ? 'is-full' : ''}`} />
+        <div
+          className={`desert-loading__below${videoReady ? ' desert-loading__below--visible' : ''}`}
+        >
+          <div className="desert-loading__text">You are entering silence</div>
+          <div className="desert-loading__bar-container">
+            <div className={`desert-loading__bar ${ready ? 'is-full' : ''}`} />
+          </div>
         </div>
       </div>
     </div>
