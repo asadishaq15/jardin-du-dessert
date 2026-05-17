@@ -3,6 +3,20 @@ import { useAssetReadyStore } from '../store/useAssetReadyStore'
 
 const FADE_DURATION_MS = 1200
 const FALLBACK_MIN_PLAYBACK_MS = 3000
+const CACTUS_VIDEO_WEBM = '/Updatedwebm.webm'
+const CACTUS_VIDEO_SAFARI_MP4 = '/updatedmp4.mp4'
+
+/** iOS WebKit and desktop Safari lack WebM alpha; use white-matte MP4 there. */
+function pickCactusVideoSrc() {
+  if (typeof navigator === 'undefined') return CACTUS_VIDEO_WEBM
+  const ua = navigator.userAgent
+  const isIOS = /iPhone|iPad|iPod/i.test(ua)
+  const isSafariDesktop =
+    /Macintosh|Mac OS X/i.test(ua) &&
+    /Safari/i.test(ua) &&
+    !/Chrome|Chromium|CriOS|Edg|OPR|FxiOS/i.test(ua)
+  return isIOS || isSafariDesktop ? CACTUS_VIDEO_SAFARI_MP4 : CACTUS_VIDEO_WEBM
+}
 
 /**
  * Loading screen for the desert view.
@@ -16,6 +30,8 @@ export default function DesertLoading({ onFadeStart, onFadeComplete }) {
   const [videoDurationMs, setVideoDurationMs] = useState(FALLBACK_MIN_PLAYBACK_MS)
   const videoDurationMsRef = useRef(FALLBACK_MIN_PLAYBACK_MS)
   const playbackTimerRef = useRef(null)
+  const [videoSrc] = useState(pickCactusVideoSrc)
+  const isSafariVideo = videoSrc === CACTUS_VIDEO_SAFARI_MP4
   const isFading = ready && hasPlayedOnce
 
   useEffect(() => {
@@ -70,23 +86,25 @@ export default function DesertLoading({ onFadeStart, onFadeComplete }) {
       aria-label="Loading desert scene"
     >
       <div className="desert-loading__content">
-        <div className="desert-loading__video-wrap">
+        <div
+          className={`desert-loading__video-wrap${isSafariVideo ? ' desert-loading__video-wrap--safari' : ''}`}
+        >
           <video
-            className="desert-loading__video"
+            key={videoSrc}
+            className={`desert-loading__video${isSafariVideo ? ' desert-loading__video--safari' : ''}`}
             autoPlay
             muted
             loop
             playsInline
             preload="auto"
             aria-hidden="true"
+            src={videoSrc}
             onLoadedMetadata={handleLoadedMetadata}
             onPlaying={() => startPlaybackTimer()}
             onError={() => startPlaybackTimer(FALLBACK_MIN_PLAYBACK_MS)}
-          >
-            <source src="/cactusAnimation.webm" type="video/webm" />
-          </video>
+          />
         </div>
-        <div className="desert-loading__text">You are entering silence</div>
+        <div className="desert-loading__text">You are entering silence.</div>
         <div className="desert-loading__bar-container">
           <div className={`desert-loading__bar ${ready ? 'is-full' : ''}`} />
         </div>
