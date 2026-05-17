@@ -104,7 +104,7 @@ export default function DesertLoading({ onFadeStart, onFadeComplete }) {
             onError={() => startPlaybackTimer(FALLBACK_MIN_PLAYBACK_MS)}
           />
         </div>
-        <div className="desert-loading__text">You are entering silence.</div>
+        <div className="desert-loading__text">You are entering silence</div>
         <div className="desert-loading__bar-container">
           <div className={`desert-loading__bar ${ready ? 'is-full' : ''}`} />
         </div>
