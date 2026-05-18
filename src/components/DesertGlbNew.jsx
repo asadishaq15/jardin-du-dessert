@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame, useLoader, useThree } from '@react-three/fiber'
 import { useAnimations, useGLTF } from '@react-three/drei'
+import { DUST_GLB_URL } from './DesertDustGlb'
 import * as THREE from 'three'
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
 import { setRevealT } from '../store/revealProgressStore'
@@ -449,3 +450,4 @@ export function DesertGlbNew({ touchParallax = false }) {
 
 useGLTF.preload(DESERT_GLB_URL)
 useGLTF.preload(CAMERA_GLB_URL)
+useGLTF.preload(DUST_GLB_URL)

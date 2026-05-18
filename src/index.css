@@ -1050,34 +1050,32 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: 12px;
 }
 
+/* WebM is pre-framed in the asset — show full frame, no CSS crop */
 .desert-loading__video-wrap {
   position: relative;
-  width: 110px;
-  height: 110px;
-  overflow: hidden;
+  width: fit-content;
+  height: auto;
+  overflow: visible;
   flex-shrink: 0;
-  /* Matches page + Safari MP4 white matte */
   background: #f7f6f4;
 }
 
 .desert-loading__video {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 340px;
-  height: 340px;
+  display: block;
+  position: relative;
+  width: 140px;
+  height: auto;
   max-width: none;
-  transform: translate(-50%, -50%);
   object-fit: contain;
   object-position: center;
 }
 
 /* Pre-framed Safari MP4 (172×252) — scale in to drop side matte */
 .desert-loading__video-wrap--safari {
-  width: 110px;
+  width: 140px;
   height: auto;
   aspect-ratio: 172 / 252;
   overflow: hidden;
@@ -1150,18 +1148,12 @@ body {
 }
 
 @media (max-width: 900px) {
-  .desert-loading__video-wrap {
-    width: 120px;
-    height: 120px;
-  }
-
   .desert-loading__video {
-    width: 380px;
-    height: 380px;
+    width: 150px;
   }
 
   .desert-loading__video-wrap--safari {
-    width: 120px;
+    width: 150px;
     height: auto;
   }
 }

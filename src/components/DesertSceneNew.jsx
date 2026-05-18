@@ -14,6 +14,7 @@ import {
   Vignette,
 } from '@react-three/postprocessing'
 import { DesertGlbNew } from './DesertGlbNew'
+import { DesertDustGlb } from './DesertDustGlb'
 import { RevealLabel3D } from './RevealLabel3D'
 import { DESERT_NEW_PATH_PHASES } from '../constants/revealTimeline'
 
@@ -125,6 +126,7 @@ export default function DesertSceneNew({
             environmentIntensity={0.2}
           />
           <DesertGlbNew touchParallax={touchParallax} />
+          <DesertDustGlb started={sceneRevealed} qualityTier={qualityTier} />
 
           {/* Path windows stay Mind→Body→Heart→Spirit→Soul; copy cross-wire keeps Spirit text last (Soul window). */}
           <RevealLabel3D
