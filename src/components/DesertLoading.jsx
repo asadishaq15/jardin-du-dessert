@@ -18,7 +18,11 @@ const HAVE_CURRENT_DATA = 2
  * Plays the cactus animation from /public while scene assets are loading,
  * then fades out once sceneAssetsReady becomes true and the animation has played once.
  */
-export default function DesertLoading({ onFadeStart, onFadeComplete }) {
+export default function DesertLoading({
+  mobileLayout = false,
+  onFadeStart,
+  onFadeComplete,
+}) {
   const ready = useAssetReadyStore((s) => s.sceneAssetsReady)
   const [shouldRender, setShouldRender] = useState(true)
   const [hasPlayedOnce, setHasPlayedOnce] = useState(false)
@@ -151,7 +155,7 @@ export default function DesertLoading({ onFadeStart, onFadeComplete }) {
 
   return (
     <div
-      className={`desert-loading ${isFading ? 'is-fading' : ''}`}
+      className={`desert-loading${mobileLayout ? ' desert-loading--mobile' : ''}${isFading ? ' is-fading' : ''}`}
       role="status"
       aria-label="Loading desert scene"
     >

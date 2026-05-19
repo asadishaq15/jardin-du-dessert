@@ -11,7 +11,10 @@ import DesertRevealModal from './DesertRevealModal'
 import { DesertRotateHint } from './DesertRotateHint'
 import DesertScrollIndicator from './DesertScrollIndicator'
 import { useDesertPathProgressStore } from '../store/useDesertPathProgressStore'
-import { resolveDesertQualityTier } from '../utils/desertQualityTier'
+import {
+  isMobileLoadingLayout,
+  resolveDesertQualityTier,
+} from '../utils/desertQualityTier'
 import { useDesertAdaptiveQuality } from '../hooks/useDesertAdaptiveQuality'
 
 /** Animated sound wave bars — same as DesertView */
@@ -44,8 +47,21 @@ export default function DesertViewNew() {
   const [forceLandscape, setForceLandscape] = useState(false)
   const [dismissedHint, setDismissedHint] = useState(false)
   const [touchParallax, setTouchParallax] = useState(false)
+  const [mobileLayout, setMobileLayout] = useState(() => isMobileLoadingLayout())
   const wasLandscapeRef = useRef(false)
   const loaderFinishedRef = useRef(false)
+
+  /* Touch phones in landscape exceed 900px width — keep loading cactus sized for mobile. */
+  useEffect(() => {
+    const syncMobileLayout = () => setMobileLayout(isMobileLoadingLayout())
+    syncMobileLayout()
+    window.addEventListener('resize', syncMobileLayout)
+    window.addEventListener('orientationchange', syncMobileLayout)
+    return () => {
+      window.removeEventListener('resize', syncMobileLayout)
+      window.removeEventListener('orientationchange', syncMobileLayout)
+    }
+  }, [])
 
   useEffect(() => {
     setSceneAssetsReady(false)
@@ -198,6 +214,7 @@ export default function DesertViewNew() {
       <div className="desert-view__viewport">
         {showLoading && (
           <DesertLoading
+            mobileLayout={mobileLayout}
             onFadeStart={handleLoadingFadeStart}
             onFadeComplete={handleLoadingFadeComplete}
           />

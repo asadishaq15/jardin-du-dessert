@@ -18,6 +18,19 @@ export function isMobileViewport() {
   return isNarrow && (hasCoarsePointer || noHover)
 }
 
+/** Touch devices in landscape (width >900px) — used for loading cactus sizing. */
+export function isMobileLoadingLayout() {
+  if (typeof window === 'undefined') return false
+  const touch =
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.matchMedia('(hover: none)').matches
+  if (!touch) return false
+  return (
+    window.matchMedia('(max-width: 900px)').matches ||
+    window.matchMedia('(max-height: 500px)').matches
+  )
+}
+
 function parseTierParam(value) {
   if (!value || typeof value !== 'string') return null
   const t = value.trim().toLowerCase()
